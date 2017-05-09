@@ -6,7 +6,7 @@ package util;
 public final class Constants {
 
     /**** CONSTANTS ****/
-    public static final int REFRESH_LIMIT_FILENAME = 45; // Refresh time for a filename in seconds
+    public static final int REFRESH_FILENAME_TIMELIMIT = 45; // Refresh time for a filename in seconds
 
 
     /**

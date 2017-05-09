@@ -5,15 +5,17 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 
 /**
+ * Handles UDP Connection to obtain peers list of files to share & sends its own shared files
+ *
  * Created by danielGoncalves on 09/05/17.
  */
-public class UdpBroadcastReceiver implements Runnable {
+public class UdpCommunication implements Runnable {
 
     private static final int SIZE = 300;
     private static final int SLEEP_TIME = 3;
     private DatagramSocket sock;
 
-    public UdpBroadcastReceiver(DatagramSocket socket) {
+    public UdpCommunication(DatagramSocket socket) {
 
         sock = socket;
     }

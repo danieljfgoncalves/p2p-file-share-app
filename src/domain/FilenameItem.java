@@ -3,10 +3,11 @@ package domain;
 import util.Constants;
 
 import java.net.InetAddress;
-import java.util.*;
+import java.util.Observable;
+import java.util.Timer;
+import java.util.TimerTask;
 
 /**
- * TODO : Implement Observable methods
  * <p>
  * Represents a filename with related information (username, host address, etc.)
  * <p>
@@ -19,7 +20,6 @@ public class FilenameItem extends Observable {
     private InetAddress host;
     private Integer tcpPort;
     private Boolean active;
-    private List<Observer> observers;
     private Timer timer; // Timer to trigger state if refresh time limit is reached.
 
     public FilenameItem(String filename, String username, InetAddress hostAddress, Integer tcpPort) {
@@ -30,28 +30,70 @@ public class FilenameItem extends Observable {
         this.tcpPort = tcpPort;
 
         // Instantiate observer list, active state & timer;
-        this.observers = new ArrayList<>();
         this.active = true;
-        // Set timer
-        refresh();
+        // Set timer to null
+        this.timer = null;
 
     }
 
+    public String getFilename() {
+        return this.filename;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public InetAddress getHost() {
+        return host;
+    }
+
+    public Integer getTcpPort() {
+        return tcpPort;
+    }
+
+    public boolean isActive() {
+        return this.active;
+    }
+
     /**
-     * Resets the filename refresh limit.
+     * Resets the filename refresh time limit.
      */
     public void refresh() {
 
         this.timer = new Timer();
         this.timer.schedule
-                (new ChangeStateTimerTask(), Constants.REFRESH_LIMIT_FILENAME * 1000);
+                (new ChangeStateTimerTask(), Constants.REFRESH_FILENAME_TIMELIMIT * 1000);
     }
 
-    private void deactive() {
+    private void deactivate() {
 
         this.active = false;
+        // Notify observers
+        setChanged();
+        notifyObservers();
+    }
 
-        // TODO : Implement notifyObservers
+    @Override
+    public int hashCode() {
+        int result = filename.hashCode();
+        result = 31 * result + username.hashCode();
+        result = 31 * result + host.hashCode();
+        result = 31 * result + tcpPort.hashCode();
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        FilenameItem that = (FilenameItem) o;
+
+        if (!filename.equals(that.filename)) return false;
+        if (!username.equals(that.username)) return false;
+        if (!host.equals(that.host)) return false;
+        return tcpPort.equals(that.tcpPort);
     }
 
     /**
@@ -62,7 +104,7 @@ public class FilenameItem extends Observable {
         @Override
         public void run() {
 
-            deactive();
+            deactivate();
         }
     }
 }

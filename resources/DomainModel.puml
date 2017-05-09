@@ -25,13 +25,12 @@ package "domain" {
         address : InetAddress
         tcpPort : Integer
         active : Boolean
-        observers : List<Observer>
 
         -deactivate()
         +isActive()
     }
-
-    class Fileset
+    class FileNameItemSet
+    class WatchedDirectory
 }
 
 @enduml
