@@ -1,0 +1,54 @@
+@startuml
+title P2P-FileShare
+
+package "utils" {
+    class Constants
+}
+
+package "udp" {
+
+    class UdpCommunication
+    class FileSetUdpProtocolParser
+}
+
+package "tcp" {
+
+    class TcpCommunication
+}
+
+package "domain" {
+
+    class FilenameItem implements Observable {
+
+        filename : String
+        username : String
+        address : InetAddress
+        tcpPort : Integer
+        active : Boolean
+        observers : List<Observer>
+
+        -deactivate()
+        +isActive()
+    }
+
+    class Fileset
+}
+
+@enduml
+
+
+
+
+/'
+Class01 <|-- Class02
+Class03 *-- Class04
+Class05 o-- Class06
+Class07 .. Class08
+Class09 -- Class10
+
+class UdpCommunication {
+  username
+  password
+  +sign_in()
+}
+'/
