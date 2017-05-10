@@ -8,7 +8,7 @@ package "utils" {
 package "udp" {
 
     class UdpCommunication
-    class FileSetUdpProtocolParser
+    class FilenameSetProtocol
 }
 
 package "tcp" {

@@ -25,7 +25,6 @@ public class FilenameItemSet extends Observable implements Observer {
         }
 
         item.refresh();
-
         item.addObserver(this);
 
         return this.set.add(item);

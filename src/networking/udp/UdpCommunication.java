@@ -1,50 +1,93 @@
 package networking.udp;
 
-import java.io.IOException;
-import java.net.DatagramPacket;
+import domain.FilenameItemSet;
+import domain.WatchedDirectory;
+
 import java.net.DatagramSocket;
+import java.util.Observable;
+import java.util.Timer;
+import java.util.TimerTask;
 
 /**
  * Handles UDP Connection to obtain peers list of files to share & sends its own shared files
  *
  * Created by danielGoncalves on 09/05/17.
  */
-public class UdpCommunication implements Runnable {
+public class UdpCommunication extends Observable {
 
-    private static final int SIZE = 300;
-    private static final int SLEEP_TIME = 3;
-    private DatagramSocket sock;
+    private static final int TIMER_DELAY = 2;
+    private final DatagramSocket udpSocket;
+    private final int timeInterval;
+    private final int timePeriod;
+    private final Thread receiverThread;
+    private final FilenameItemSet filenames;
+    private final WatchedDirectory sharedDirectory;
+    private Timer sendingTimer;
 
-    public UdpCommunication(DatagramSocket socket) {
+    public UdpCommunication(DatagramSocket socket, int timeIntervalInSecs, int sendingTimePeriod,
+                            WatchedDirectory sharedDir, FilenameItemSet filenamesSet) {
 
-        sock = socket;
+        udpSocket = socket;
+
+        sendingTimer = new Timer();
+        timeInterval = timeIntervalInSecs;
+        timePeriod = sendingTimePeriod;
+
+        receiverThread = new Thread(new UdpReceiver());
+
+        sharedDirectory = sharedDir;
+        filenames = filenamesSet;
     }
 
-    @Override
-    public void run() {
+    public void start() {
 
-        byte[] data = new byte[SIZE];
+        // Start Receiver
+        receiverThread.start();
 
-        DatagramPacket udpPacket = new DatagramPacket(data, data.length);
-        try {
-            while (true) {
+        // Start Sender
+        sendingTimer.scheduleAtFixedRate(new UdpSender(), TIMER_DELAY * 1000, timePeriod * 1000);
+    }
 
-                udpPacket.setData(data);
-                udpPacket.setLength(data.length);
-                sock.receive(udpPacket);
+    public void kill() {
 
-                System.out.println("Request from: " + udpPacket.getAddress().getHostAddress() +
-                        " port: " + udpPacket.getPort());
+        // Terminates receiver server
+        receiverThread.interrupt();
+        // Terminates sending timer
+        sendingTimer.cancel();
+        sendingTimer.purge();
+    }
 
-                String test = "Test File.";
+    private void receiverServer() {
 
-                udpPacket.setAddress(udpPacket.getAddress());
-                udpPacket.setData(test.getBytes());
-                udpPacket.setLength(test.length());
-                sock.send(udpPacket);
-            }
-        } catch (IOException ex) {
-            System.out.println("IOException");
+        // TODO: Implement receiver server
+    }
+
+    private synchronized void sendBroadcast() {
+
+        // TODO: Implement sending a broadcast to other peers
+    }
+
+    /**
+     * UDP Receiver Handler
+     */
+    private class UdpReceiver implements Runnable {
+
+        @Override
+        public void run() {
+
+            receiverServer(); // Launch receiver server in a new thread
+        }
+    }
+
+    /**
+     * UDP Sender Handler
+     */
+    private class UdpSender extends TimerTask {
+
+        @Override
+        public void run() {
+
+            sendBroadcast(); // Send filenames to share in broadcast
         }
     }
 }

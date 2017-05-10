@@ -1,11 +1,13 @@
 package util;
 
 /**
+ * Represents the common constants of the application.
+ *
  * Created by danielGoncalves on 09/05/17.
  */
 public final class Constants {
 
-    /**** CONSTANTS ****/
+    /**** GLOBAL CONSTANTS ****/
     public static final int REFRESH_FILENAME_TIMELIMIT = 45; // Refresh time for a filename in seconds
 
 
