@@ -18,11 +18,11 @@ public class FilenameItem extends Observable {
     private String filename;
     private String username;
     private InetAddress host;
-    private Integer tcpPort;
+    private Short tcpPort;
     private Boolean active;
     private Timer timer; // Timer to trigger state if refresh time limit is reached.
 
-    public FilenameItem(String filename, String username, InetAddress hostAddress, Integer tcpPort) {
+    public FilenameItem(String filename, String username, InetAddress hostAddress, Short tcpPort) {
 
         this.filename = filename;
         this.username = username;
@@ -48,7 +48,7 @@ public class FilenameItem extends Observable {
         return host;
     }
 
-    public Integer getTcpPort() {
+    public Short getTcpPort() {
         return tcpPort;
     }
 

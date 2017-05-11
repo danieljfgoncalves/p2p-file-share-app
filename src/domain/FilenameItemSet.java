@@ -14,6 +14,7 @@ public class FilenameItemSet extends Observable implements Observer {
 
     private Set<FilenameItem> set;
 
+    // TODO : Review class
     public FilenameItemSet() {
         this.set = new HashSet<>();
     }
@@ -22,6 +23,10 @@ public class FilenameItemSet extends Observable implements Observer {
 
         if (!item.isActive()) {
             return false;
+        }
+        if (this.set.contains(item)) {
+
+            this.remove(item);
         }
 
         item.refresh();

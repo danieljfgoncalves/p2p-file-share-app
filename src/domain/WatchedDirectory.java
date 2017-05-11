@@ -24,7 +24,6 @@ public class WatchedDirectory extends Observable {
         this.watcher = FileSystems.getDefault().newWatchService();
         this.directory = Paths.get(dirPath);
         this.directory.register(this.watcher, ENTRY_CREATE, ENTRY_DELETE, ENTRY_MODIFY);
-
         this.fileFilter = new MyFileFilter();
     }
 
@@ -60,7 +59,7 @@ public class WatchedDirectory extends Observable {
 
     public File[] getFiles() throws IOException {
 
-        final File folder = this.directory.toFile();
+        File folder = this.directory.toFile();
 
         return folder.listFiles(this.fileFilter);
     }

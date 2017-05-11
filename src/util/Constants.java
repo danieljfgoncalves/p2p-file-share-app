@@ -9,6 +9,7 @@ public final class Constants {
 
     /**** GLOBAL CONSTANTS ****/
     public static final int REFRESH_FILENAME_TIMELIMIT = 45; // Refresh time for a filename in seconds
+    public static final int PAYLOAD_SIZE = 512; // DatagramPacket data size limit
 
 
     /**
