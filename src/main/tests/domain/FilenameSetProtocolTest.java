@@ -49,7 +49,7 @@ public class FilenameSetProtocolTest {
         fnSet1.add(new FilenameItem("file4", username, addr, tcpPort));
         fnSet1.add(new FilenameItem("file5", username, addr, tcpPort));
 
-        List<byte[]> bytes = FilenameSetProtocol.parseFileList(files, tcpPort, username);
+        List<byte[]> bytes = FilenameSetProtocol.parseFileList(files, tcpPort);
 
         FilenameItemSet fnSet2 = new FilenameItemSet();
 

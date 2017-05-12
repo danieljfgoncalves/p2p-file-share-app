@@ -4,6 +4,7 @@ import domain.Directory;
 import domain.FilenameItem;
 import domain.FilenameItemSet;
 import domain.FilenameSetProtocol;
+import settings.Application;
 import util.Constants;
 
 import java.io.File;
@@ -16,6 +17,9 @@ import java.util.LinkedList;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import static util.Constants.BROADCAST_STRING;
+import static util.Constants.SEND_LIST_DELAY;
+
 /**
  * Handles UDP Connection to obtain peers list of files to share & sends its own shared files
  * <p>
@@ -23,33 +27,23 @@ import java.util.TimerTask;
  */
 public class UdpCommunication {
 
-    private static final String BROADCAST_STRING = "255.255.255.255";
-    private static final int TIMER_DELAY = 2;
     private final DatagramSocket udpSocket;
-    private final String username;
     private final Integer tcpPort;
-    private final int timePeriod;
     private final Thread receiverThread;
     private final FilenameItemSet filenames;
     private final Directory sharedDirectory;
     private final Timer sendingTimer;
 
-    public UdpCommunication(DatagramSocket socket, int sendingTimePeriod,
-                            Directory sharedDir, FilenameItemSet filenamesSet, String username, Integer tcpPort)
+    public UdpCommunication(DatagramSocket socket, Directory sharedDir, FilenameItemSet filenamesSet, Integer tcpPort)
             throws SocketException {
 
         udpSocket = socket;
         udpSocket.setBroadcast(true);
         // udpSocket.setSoTimeout(TIMEOUT * 1000); // FIXME : set the socket timeout
 
-        this.username = username;
         this.tcpPort = tcpPort;
-
         sendingTimer = new Timer();
-        timePeriod = sendingTimePeriod;
-
         receiverThread = new Thread(new UdpReceiver());
-
         sharedDirectory = sharedDir;
         filenames = filenamesSet;
     }
@@ -60,7 +54,8 @@ public class UdpCommunication {
         receiverThread.start();
 
         // Start Sender
-        sendingTimer.scheduleAtFixedRate(new UdpSender(), TIMER_DELAY * 1000, timePeriod * 1000);
+        sendingTimer.scheduleAtFixedRate(
+                new UdpSender(), SEND_LIST_DELAY * 1000, Application.settings().getBroadcastTimeInterval() * 1000);
     }
 
     public void kill() { // FIXME: Review
@@ -110,10 +105,10 @@ public class UdpCommunication {
             filenames.notifyChanges();
 
             // FIXME : erase test
-            System.out.println("Received Files:\n");
+            System.out.println("Files to share:\n");
             for (FilenameItem f :
                     filenames.getSet()) {
-                System.out.printf("RECEIVED ELEMENT: %s | %s | %s | %s\n",
+                System.out.printf("%s | %s | %s | %s\n",
                         f.getFilename(),
                         f.getUsername(),
                         f.getHost().getHostAddress(),
@@ -143,7 +138,7 @@ public class UdpCommunication {
 
         if (files.length > 0) { // If no files to send ignore
 
-            LinkedList<byte[]> dataList = new LinkedList<>(FilenameSetProtocol.parseFileList(files, tcpPort, username));
+            LinkedList<byte[]> dataList = new LinkedList<>(FilenameSetProtocol.parseFileList(files, this.tcpPort));
 
             DatagramPacket udpPacket =
                     new DatagramPacket(new byte[Constants.PAYLOAD_SIZE], Constants.PAYLOAD_SIZE, broadCast, udpSocket.getLocalPort());

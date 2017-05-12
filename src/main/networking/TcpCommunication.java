@@ -72,7 +72,7 @@ public class TcpCommunication {
         income.close();
         clientSocket.close();
 
-        System.out.println("Uploaded the file: " + filename + " to: " + clientSocket.getInetAddress().getHostAddress());
+        System.out.println("Downloaded the file: " + filename + " to: " + clientSocket.getInetAddress().getHostAddress());
     }
 
     /**

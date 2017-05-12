@@ -18,6 +18,7 @@ public class AppSettings {
 
     private final static String PROPERTIES_RESOURCE = "settings.properties";
     // PROPERTY KEYS
+    private final static String USERNAME_KEY = "username";
     private final static String SHD_DIR_KEY = "shd.directory";
     private final static String DOWNLOADS_DIR_KEY = "downloads.directory";
     private final static String UDP_PORT_KEY = "udp.port";
@@ -27,6 +28,7 @@ public class AppSettings {
     private final static String FILE_EXTENSIONS_KEY = "file.extensions";
     private final static String MAX_UPLOADS_KEY = "max.upload.connections";
     // PROPERTY DEFAULTS
+    private final static String USERNAME_DEFAULT = System.getProperty("user.name", "unknown");
     private final static String SHD_DIR_DEFAULT = "shared";
     private final static String DOWNLOADS_DIR_DEFAULT = "download";
     private final static Integer UDP_PORT_DEFAULT = 32035;
@@ -81,6 +83,13 @@ public class AppSettings {
         this.applicationProperties.setProperty(FILE_REFRESH_TIME_KEY, FILE_REFRESH_TIME_DEFAULT.toString());
         this.applicationProperties.setProperty(FILE_EXTENSIONS_KEY, FILE_EXTENSIONS_DEFAULT);
         this.applicationProperties.setProperty(MAX_UPLOADS_KEY, MAX_UPLOADS_DEFAULT.toString());
+    }
+
+    public String getUsername() {
+
+        String username = this.applicationProperties.getProperty(USERNAME_KEY, USERNAME_DEFAULT);
+
+        return (username.length() == 0) ? USERNAME_DEFAULT : username;
     }
 
     public String getShdDir() {

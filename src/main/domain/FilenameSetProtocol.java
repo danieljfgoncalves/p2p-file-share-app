@@ -1,6 +1,7 @@
 package domain;
 
-import util.ByteConversion;
+import settings.Application;
+import util.ByteUtil;
 import util.Constants;
 
 import java.io.File;
@@ -58,14 +59,14 @@ public final class FilenameSetProtocol {
         }
 
         // If packet is valid
-        Integer tcpPort = ByteConversion.bytesToInt(Arrays.copyOfRange(bytes, TCP_PORT_INDEX, (TCP_PORT_INDEX + TCP_PORT_SIZE)));
-        int itemCount = ByteConversion.byteToInt(bytes[FILE_COUNT_INDEX]);
+        Integer tcpPort = ByteUtil.bytesToInt(Arrays.copyOfRange(bytes, TCP_PORT_INDEX, (TCP_PORT_INDEX + TCP_PORT_SIZE)));
+        int itemCount = ByteUtil.byteToInt(bytes[FILE_COUNT_INDEX]);
 
-        int usernameSize = ByteConversion.byteToInt(bytes[USERNAME_LENGTH_INDEX]);
+        int usernameSize = ByteUtil.byteToInt(bytes[USERNAME_LENGTH_INDEX]);
         String username = new String(bytes, USERNAME_INDEX, usernameSize);
 
         int nextIndex = ID_SIZE + VERSION_SIZE + TCP_PORT_SIZE + FILE_COUNT_SIZE + 1 /* username length byte */ + usernameSize;
-        int filenameSize = ByteConversion.byteToInt(bytes[nextIndex]);
+        int filenameSize = ByteUtil.byteToInt(bytes[nextIndex]);
         nextIndex++;
 
         for (int i = 0; i < itemCount; i++) {
@@ -78,7 +79,7 @@ public final class FilenameSetProtocol {
 
             // Set next filenameSize && nextItem
             nextIndex += filenameSize;
-            filenameSize = ByteConversion.byteToInt(bytes[nextIndex]);
+            filenameSize = ByteUtil.byteToInt(bytes[nextIndex]);
             nextIndex++;
         }
 
@@ -90,10 +91,9 @@ public final class FilenameSetProtocol {
      *
      * @param files    list of files
      * @param tcpPort  the tcp port to connect
-     * @param username the username
      * @return a list of datagram packet's data.
      */
-    public static List<byte[]> parseFileList(File[] files, Integer tcpPort, String username) {
+    public static List<byte[]> parseFileList(File[] files, Integer tcpPort) {
 
         // Instantiate lists
         LinkedList<String> filenames = getFilenames(files);
@@ -102,19 +102,19 @@ public final class FilenameSetProtocol {
         byte[] data = new byte[Constants.PAYLOAD_SIZE];
         int index = 0;
         // Create header
-        byte[] header = createDataHeader(tcpPort, username);
+        byte[] header = createDataHeader(tcpPort);
         index += addBytes(header, data, index);
         // Initialize file count
         int count = 0;
         while (!filenames.isEmpty()) {
 
             byte[] filenameBytes = filenames.pop().getBytes();
-            byte fnLength = ByteConversion.intToByte(filenameBytes.length);
+            byte fnLength = ByteUtil.intToByte(filenameBytes.length);
 
             if ((index + fnLength + 1 /* BYTE FOR FILENAME LENGTH */) > Constants.PAYLOAD_SIZE) {
 
                 // add file count to data && data to packet list
-                data[FILE_COUNT_INDEX] = ByteConversion.intToByte(count);
+                data[FILE_COUNT_INDEX] = ByteUtil.intToByte(count);
                 packets.add(data);
                 // Reset variables
                 data = new byte[Constants.PAYLOAD_SIZE];
@@ -160,24 +160,25 @@ public final class FilenameSetProtocol {
         return toAdd.length;
     }
 
-    private static byte[] createDataHeader(Integer tcpPort, String username) {
+    private static byte[] createDataHeader(Integer tcpPort) {
+
+        String username = Application.settings().getUsername(); // Get username
 
         byte[] header = new byte[ID_SIZE + VERSION_SIZE + TCP_PORT_SIZE + FILE_COUNT_SIZE + 1 /* username length byte */ + username.length()];
-
         int index = 0;
 
         // Add Protocol ID & Version
-        header[index] = ByteConversion.intToByte(PROTOCOL_ID);
+        header[index] = ByteUtil.intToByte(PROTOCOL_ID);
         index++;
-        header[index] = ByteConversion.intToByte(PROTOCOL_VERSION);
+        header[index] = ByteUtil.intToByte(PROTOCOL_VERSION);
         index++;
         // Convert tcp Port
-        byte[] portBytes = ByteConversion.intToBytes(tcpPort);
+        byte[] portBytes = ByteUtil.intToBytes(tcpPort);
         index += addBytes(portBytes, header, index);
         // Skip file count byte
         index++;
         // Convert username
-        header[index] = ByteConversion.intToByte(username.length());
+        header[index] = ByteUtil.intToByte(username.length());
         index++;
         byte[] usrBytes = username.getBytes();
         addBytes(usrBytes, header, index);

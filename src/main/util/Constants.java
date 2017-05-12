@@ -9,6 +9,13 @@ public final class Constants {
 
     /**** GLOBAL CONSTANTS ****/
     public static final int PAYLOAD_SIZE = 512; // DatagramPacket data size limit
+    public static final String BROADCAST_STRING = "255.255.255.255"; // Broadcast address
+    public static final int SEND_LIST_DELAY = 1; // Send list Timer schedule delay
+    public static final String WARNING_PANE_TITLE = "SYSTEM FAILURE";
+
+    /**** EXIT STATUS ****/
+    public static final int EXIT_SUCCESS = 0;
+    public static final int SOCKET_FAILED = -1;
 
     /**
      * The caller references the constants using <tt>Consts.EMPTY_STRING</tt>,

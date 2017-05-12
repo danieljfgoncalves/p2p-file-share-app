@@ -92,15 +92,16 @@ public class Directory extends Observable {
 
             if (!file.isFile()) return false;
 
-            String filename = file.getName();
-            String[] splitFn = filename.split(".");
-            String extension = splitFn[splitFn.length];
+            String filename = file.getName().toLowerCase();
 
             String[] acceptedExts = Application.settings().getFileExtensions();
 
             for (String ext :
                     acceptedExts) {
-                if (extension.equalsIgnoreCase(ext)) return true;
+
+                String dotExt = ".".concat(ext);
+
+                if (filename.endsWith(dotExt)) return true;
             }
 
             return false;

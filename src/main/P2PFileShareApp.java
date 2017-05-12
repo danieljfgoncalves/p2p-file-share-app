@@ -1,54 +1,101 @@
+import application.OpenCommunicationsController;
 import domain.Directory;
 import domain.FilenameItemSet;
-import networking.TcpCommunication;
-import networking.UdpCommunication;
+import settings.Application;
+import util.Constants;
 
+import javax.swing.*;
 import java.io.IOException;
-import java.net.BindException;
 import java.net.DatagramSocket;
-import java.net.InetAddress;
 import java.net.ServerSocket;
+import java.net.SocketException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import static util.Constants.WARNING_PANE_TITLE;
 
 public class P2PFileShareApp {
 
-    public static void main(String[] args) throws IOException, InterruptedException {
+    public static void main(String[] args) {
 
         System.out.println("|****************************************|");
         System.out.println("| Launched Serverless P2P File Share App |");
         System.out.println("|****************************************|");
 
-
+        // Open UDP/TCP Sockets
         DatagramSocket udpSocket = null;
+        ServerSocket tcpSocket = null;
         try {
-            udpSocket = new DatagramSocket(8887);
-        } catch (BindException ex) {
-            System.out.println("Bind to local port failed");
-            System.exit(-1);
+            udpSocket = new DatagramSocket(Application.settings().getUdpPort());
+            tcpSocket = new ServerSocket(Application.settings().getTcpPort());
+        } catch (IOException e) {
+            Logger.getLogger(P2PFileShareApp.class.getName()).log(Level.SEVERE, "Open sockets failed.", e);
+
+            // PopUp Warning
+            JOptionPane.showMessageDialog(
+                    null,
+                    "Open sockets failed.",
+                    WARNING_PANE_TITLE,
+                    JOptionPane.WARNING_MESSAGE);
+
+            System.exit(Constants.SOCKET_FAILED);
         }
 
-        ServerSocket tcpSocket = new ServerSocket(0);
+        // Create List of file to share & shared/download directories
+        FilenameItemSet filenameSet = new FilenameItemSet();
+        Directory shdDir = null;
+        Directory dwlDir = null;
+        try {
+            shdDir = new Directory(Application.settings().getShdDir());
+            shdDir.watch(); // Activate watch service
+            dwlDir = new Directory(Application.settings().getDownloadsDir());
+            dwlDir.watch();
+        } catch (IOException e) {
+            Logger.getLogger(P2PFileShareApp.class.getName()).log(Level.SEVERE, "Open directories failed.", e);
 
-        FilenameItemSet set = new FilenameItemSet();
-        Directory shdDir = new Directory("testDir");
-        Directory dwlDir = new Directory("testDir2");
+            // PopUp Warning
+            JOptionPane.showMessageDialog(
+                    null,
+                    "Open directories failed.",
+                    WARNING_PANE_TITLE,
+                    JOptionPane.WARNING_MESSAGE);
 
-        UdpCommunication udp =
-                new UdpCommunication(udpSocket, 20, shdDir, set, "user1", 7777);
-        udp.start();
+            System.exit(Constants.SOCKET_FAILED);
+        } catch (InterruptedException e) {
+            Logger.getLogger(P2PFileShareApp.class.getName()).log(Level.WARNING, "A watch service on directories failed.", e);
+        }
 
-        TcpCommunication tcp = new TcpCommunication(tcpSocket, shdDir, dwlDir);
-        tcp.start();
-
+        // Allocated TCP Port
         Integer tcpPort = tcpSocket.getLocalPort();
 
-        tcp.download("download.txt", InetAddress.getByName("192.168.1.2"), tcpPort);
+        // Open Communications Controller
+        OpenCommunicationsController communicationsController = new OpenCommunicationsController();
+        try {
+            communicationsController.OpenUDPComunications(udpSocket, shdDir, filenameSet, tcpPort);
+        } catch (SocketException e) {
+            Logger.getLogger(P2PFileShareApp.class.getName()).log(Level.WARNING, "Send broadcast packet failed.", e);
 
-        //Thread.sleep(60 * 1000);
+            // PopUp Warning
+            JOptionPane.showMessageDialog(
+                    null,
+                    "Sending files crashed. Relaunch app or you can still download files.",
+                    WARNING_PANE_TITLE,
+                    JOptionPane.WARNING_MESSAGE);
+        }
+        communicationsController.OpenTCPComunications(tcpSocket, shdDir, dwlDir);
 
-        System.exit(0); // Kill all threads
+        // TODO : Remaining App flow
+
+        try {
+            Thread.sleep(10 * 1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
 
         System.out.println("|******************************************|");
         System.out.println("| Terminated Serverless P2P File Share App |");
         System.out.println("|******************************************|");
+
+        System.exit(Constants.EXIT_SUCCESS); // Kills all threads
     }
 }
