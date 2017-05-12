@@ -13,7 +13,6 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
 import java.util.LinkedList;
-import java.util.Observable;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -22,7 +21,7 @@ import java.util.TimerTask;
  * <p>
  * Created by danielGoncalves on 09/05/17.
  */
-public class UdpCommunication extends Observable {
+public class UdpCommunication {
 
     private static final String BROADCAST_STRING = "255.255.255.255";
     private static final int TIMER_DELAY = 2;
@@ -64,7 +63,7 @@ public class UdpCommunication extends Observable {
         sendingTimer.scheduleAtFixedRate(new UdpSender(), TIMER_DELAY * 1000, timePeriod * 1000);
     }
 
-    public void kill() {
+    public void kill() { // FIXME: Review
 
         // Terminates receiver server
         receiverThread.interrupt();
@@ -127,6 +126,8 @@ public class UdpCommunication extends Observable {
     }
 
     private void sendBroadcast() throws IOException {
+
+        // TODO: Implement suggestion to send to unicast addresses too.
 
         InetAddress broadCast = InetAddress.getByName(BROADCAST_STRING);
 

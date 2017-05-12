@@ -57,11 +57,29 @@ public class WatchedDirectory extends Observable {
         }
     }
 
+    public String getAbsoluteDirPath() {
+        return directory.toFile().getAbsolutePath();
+    }
+
     public File[] getFiles() throws IOException {
 
         File folder = this.directory.toFile();
 
         return folder.listFiles(this.fileFilter);
+    }
+
+    public File getFile(String filename) throws IllegalArgumentException {
+
+        File folder = this.directory.toFile();
+        File[] files = folder.listFiles(this.fileFilter);
+
+        for (File file :
+                files) {
+
+            if (file.getName().equalsIgnoreCase(filename)) return file;
+        }
+
+        return null;
     }
 
     /**
@@ -70,6 +88,6 @@ public class WatchedDirectory extends Observable {
     private class MyFileFilter implements FileFilter {
         public boolean accept(File file) {
             return file.isFile();
-        }
+        } // TODO: Add file extensions validation
     }
 }
