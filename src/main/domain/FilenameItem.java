@@ -1,6 +1,6 @@
 package domain;
 
-import util.Constants;
+import settings.Application;
 
 import java.net.InetAddress;
 import java.util.Observable;
@@ -18,18 +18,18 @@ public class FilenameItem extends Observable {
     private String filename;
     private String username;
     private InetAddress host;
-    private Short tcpPort;
+    private Integer tcpPort;
     private Boolean active;
     private Timer timer; // Timer to trigger state if refresh time limit is reached.
 
-    public FilenameItem(String filename, String username, InetAddress hostAddress, Short tcpPort) {
+    public FilenameItem(String filename, String username, InetAddress hostAddress, Integer tcpPort) {
 
         this.filename = filename;
         this.username = username;
         this.host = hostAddress;
         this.tcpPort = tcpPort;
 
-        // Instantiate observer list, active state & timer;
+        // active state;
         this.active = true;
         // Set timer to null
         this.timer = null;
@@ -37,7 +37,7 @@ public class FilenameItem extends Observable {
     }
 
     public String getFilename() {
-        return this.filename;
+        return filename;
     }
 
     public String getUsername() {
@@ -48,7 +48,7 @@ public class FilenameItem extends Observable {
         return host;
     }
 
-    public Short getTcpPort() {
+    public Integer getTcpPort() {
         return tcpPort;
     }
 
@@ -63,7 +63,7 @@ public class FilenameItem extends Observable {
 
         this.timer = new Timer();
         this.timer.schedule
-                (new ChangeStateTimerTask(), Constants.REFRESH_FILENAME_TIMELIMIT * 1000);
+                (new ChangeStateTimerTask(), Application.settings().getFileRefreshTime() * 1000);
     }
 
     private void deactivate() {

@@ -1,9 +1,9 @@
-package networking.udp;
+package networking;
 
+import domain.Directory;
 import domain.FilenameItem;
 import domain.FilenameItemSet;
 import domain.FilenameSetProtocol;
-import domain.WatchedDirectory;
 import util.Constants;
 
 import java.io.File;
@@ -27,15 +27,15 @@ public class UdpCommunication {
     private static final int TIMER_DELAY = 2;
     private final DatagramSocket udpSocket;
     private final String username;
-    private final Short tcpPort;
+    private final Integer tcpPort;
     private final int timePeriod;
     private final Thread receiverThread;
     private final FilenameItemSet filenames;
-    private final WatchedDirectory sharedDirectory;
+    private final Directory sharedDirectory;
     private final Timer sendingTimer;
 
     public UdpCommunication(DatagramSocket socket, int sendingTimePeriod,
-                            WatchedDirectory sharedDir, FilenameItemSet filenamesSet, String username, Short tcpPort)
+                            Directory sharedDir, FilenameItemSet filenamesSet, String username, Integer tcpPort)
             throws SocketException {
 
         udpSocket = socket;

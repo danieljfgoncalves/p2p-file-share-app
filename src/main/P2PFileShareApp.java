@@ -1,7 +1,7 @@
+import domain.Directory;
 import domain.FilenameItemSet;
-import domain.WatchedDirectory;
-import networking.tcp.TcpCommunication;
-import networking.udp.UdpCommunication;
+import networking.TcpCommunication;
+import networking.UdpCommunication;
 
 import java.io.IOException;
 import java.net.BindException;
@@ -29,11 +29,11 @@ public class P2PFileShareApp {
         ServerSocket tcpSocket = new ServerSocket(0);
 
         FilenameItemSet set = new FilenameItemSet();
-        WatchedDirectory shdDir = new WatchedDirectory("testDir");
-        WatchedDirectory dwlDir = new WatchedDirectory("testDir2");
+        Directory shdDir = new Directory("testDir");
+        Directory dwlDir = new Directory("testDir2");
 
         UdpCommunication udp =
-                new UdpCommunication(udpSocket, 20, shdDir, set, "user1", (short) 7777);
+                new UdpCommunication(udpSocket, 20, shdDir, set, "user1", 7777);
         udp.start();
 
         TcpCommunication tcp = new TcpCommunication(tcpSocket, shdDir, dwlDir);

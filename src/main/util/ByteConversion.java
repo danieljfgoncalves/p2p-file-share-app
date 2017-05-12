@@ -10,6 +10,9 @@ import java.nio.ByteOrder;
  */
 public final class ByteConversion {
 
+    private static final int INTEGER_SIZE = Integer.SIZE / Byte.SIZE;
+    private static final int SHORT_SIZE = Short.SIZE / Byte.SIZE;
+
     /**
      * The caller references the ByteConversion using <tt>ByteConversion.EMPTY_STRING</tt>,
      * and so on. Thus, the caller should be prevented from constructing objects of
@@ -31,11 +34,21 @@ public final class ByteConversion {
         return (new Integer(value)).byteValue();
     }
 
-    public static short bytesToShort(byte[] bytes) {
-        return ByteBuffer.wrap(bytes).order(ByteOrder.LITTLE_ENDIAN).getShort();
+    public static int bytesToInt(byte[] value) {
+
+        return ByteBuffer.wrap(value).order(ByteOrder.LITTLE_ENDIAN).getInt();
+    }
+
+    public static byte[] intToBytes(int value) {
+
+        return ByteBuffer.allocate(INTEGER_SIZE).order(ByteOrder.LITTLE_ENDIAN).putInt(value).array();
+    }
+
+    public static short bytesToShort(byte[] value) {
+        return ByteBuffer.wrap(value).order(ByteOrder.LITTLE_ENDIAN).getShort();
     }
 
     public static byte[] shortToBytes(short value) {
-        return ByteBuffer.allocate(2).order(ByteOrder.LITTLE_ENDIAN).putShort(value).array();
+        return ByteBuffer.allocate(SHORT_SIZE).order(ByteOrder.LITTLE_ENDIAN).putShort(value).array();
     }
 }

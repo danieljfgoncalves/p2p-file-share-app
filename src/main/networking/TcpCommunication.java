@@ -1,7 +1,7 @@
-package networking.tcp;
+package networking;
 
-import domain.WatchedDirectory;
-import util.Constants;
+import domain.Directory;
+import settings.Application;
 
 import java.io.*;
 import java.net.InetAddress;
@@ -17,19 +17,19 @@ import java.util.concurrent.Executors;
  */
 public class TcpCommunication {
 
-    private final WatchedDirectory sharedDir;
-    private final WatchedDirectory downloadDir;
+    private final Directory sharedDir;
+    private final Directory downloadDir;
     private final ServerSocket serverSocket;
     private final Thread serverThread;
     private final ExecutorService clientTaskPool;
 
-    public TcpCommunication(ServerSocket tcpSocket, WatchedDirectory sharedDirectory, WatchedDirectory downloadDirectory) {
+    public TcpCommunication(ServerSocket tcpSocket, Directory sharedDirectory, Directory downloadDirectory) {
 
         sharedDir = sharedDirectory;
         downloadDir = downloadDirectory;
         serverSocket = tcpSocket;
         serverThread = new Thread(new TcpServer());
-        clientTaskPool = Executors.newFixedThreadPool(Constants.MAX_TCP_CONNECTIONS);
+        clientTaskPool = Executors.newFixedThreadPool(Application.settings().getMaxUploads());
     }
 
     public void start() {
@@ -93,7 +93,7 @@ public class TcpCommunication {
     }
 
     /**
-     * TCP Client
+     * TCP connection task
      */
     private class TcpConnection implements Runnable {
 

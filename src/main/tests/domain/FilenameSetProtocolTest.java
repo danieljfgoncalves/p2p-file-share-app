@@ -21,7 +21,7 @@ public class FilenameSetProtocolTest {
     private File[] files;
     private String username;
     private InetAddress addr;
-    private short tcpPort;
+    private Integer tcpPort;
 
     @org.junit.Before
     public void setUp() throws Exception {

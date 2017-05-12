@@ -28,7 +28,6 @@ public class FilenameItemSet extends Observable implements Observer {
 
             this.remove(item);
         }
-
         item.refresh();
         item.addObserver(this);
 
@@ -41,7 +40,7 @@ public class FilenameItemSet extends Observable implements Observer {
     }
 
     public Set<FilenameItem> getSet() {
-        return this.set;
+        return new HashSet<>(this.set);
     }
 
     public void notifyChanges() {

@@ -1,5 +1,7 @@
 package domain;
 
+import settings.Application;
+
 import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
@@ -13,13 +15,13 @@ import static java.nio.file.StandardWatchEventKinds.*;
  * <p>
  * Created by danielGoncalves on 09/05/17.
  */
-public class WatchedDirectory extends Observable {
+public class Directory extends Observable {
 
     private final WatchService watcher;
     private final Path directory;
     private final FileFilter fileFilter;
 
-    public WatchedDirectory(String dirPath) throws IOException {
+    public Directory(String dirPath) throws IOException {
 
         this.watcher = FileSystems.getDefault().newWatchService();
         this.directory = Paths.get(dirPath);
@@ -43,7 +45,7 @@ public class WatchedDirectory extends Observable {
                 WatchEvent<Path> ev = (WatchEvent<Path>) event;
                 Path fileName = ev.context();
 
-                System.out.println(kind.name() + ": " + fileName);
+                System.out.println(directory.getFileName() + kind.name() + ": " + fileName);
 
                 // Notify Observers
                 setChanged();
@@ -68,7 +70,7 @@ public class WatchedDirectory extends Observable {
         return folder.listFiles(this.fileFilter);
     }
 
-    public File getFile(String filename) throws IllegalArgumentException {
+    public File getFile(String filename) {
 
         File folder = this.directory.toFile();
         File[] files = folder.listFiles(this.fileFilter);
@@ -87,7 +89,21 @@ public class WatchedDirectory extends Observable {
      */
     private class MyFileFilter implements FileFilter {
         public boolean accept(File file) {
-            return file.isFile();
-        } // TODO: Add file extensions validation
+
+            if (!file.isFile()) return false;
+
+            String filename = file.getName();
+            String[] splitFn = filename.split(".");
+            String extension = splitFn[splitFn.length];
+
+            String[] acceptedExts = Application.settings().getFileExtensions();
+
+            for (String ext :
+                    acceptedExts) {
+                if (extension.equalsIgnoreCase(ext)) return true;
+            }
+
+            return false;
+        }
     }
 }

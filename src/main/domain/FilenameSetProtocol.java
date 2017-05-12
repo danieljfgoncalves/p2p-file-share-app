@@ -11,19 +11,24 @@ import java.util.LinkedList;
 import java.util.List;
 
 /**
- * Represents a application protocol to parse a datagram packet into a FilenameItemSet.
+ * Represents a application protocol (version 1) to parse a datagram packet into a FilenameItemSet.
  * <p>
  * Created by danielGoncalves on 10/05/17.
  */
 public final class FilenameSetProtocol {
 
-    // TODO : Add a protocol identifier byte to byte #512 ( this way we can identify the protocol )
+    private static final int PROTOCOL_ID = 1;
+    private static final int PROTOCOL_VERSION = 1;
 
-    private static final int TCP_PORT_INDEX = 0;
-    private static final int FILE_COUNT_INDEX = 2;
-    private static final int USERNAME_LENGTH_INDEX = 3;
-    private static final int USERNAME_INDEX = 4;
+    private static final int ID_INDEX = 0;
+    private static final int VERSION_INDEX = 1;
+    private static final int TCP_PORT_INDEX = 2;
+    private static final int FILE_COUNT_INDEX = 6;
+    private static final int USERNAME_LENGTH_INDEX = 7;
+    private static final int USERNAME_INDEX = 8;
 
+    private static final int ID_SIZE = VERSION_INDEX - ID_INDEX;
+    private static final int VERSION_SIZE = TCP_PORT_INDEX - VERSION_INDEX;
     private static final int TCP_PORT_SIZE = FILE_COUNT_INDEX - TCP_PORT_INDEX;
     private static final int FILE_COUNT_SIZE = USERNAME_LENGTH_INDEX - FILE_COUNT_INDEX;
 
@@ -45,15 +50,21 @@ public final class FilenameSetProtocol {
      * @param bytes       the data with the items
      * @param hostAddress the address that sent the data
      */
-    public static void parsePacket(FilenameItemSet set, byte[] bytes, InetAddress hostAddress) {
+    public static void parsePacket(FilenameItemSet set, byte[] bytes, InetAddress hostAddress)
+            throws IllegalStateException {
 
-        Short tcpPort = ByteConversion.bytesToShort(Arrays.copyOf(bytes, TCP_PORT_SIZE));
+        if (bytes[ID_INDEX] != PROTOCOL_ID || bytes[VERSION_INDEX] != PROTOCOL_VERSION) {
+            throw new IllegalStateException("Packet does not abide by this protocol.");
+        }
+
+        // If packet is valid
+        Integer tcpPort = ByteConversion.bytesToInt(Arrays.copyOfRange(bytes, TCP_PORT_INDEX, (TCP_PORT_INDEX + TCP_PORT_SIZE)));
         int itemCount = ByteConversion.byteToInt(bytes[FILE_COUNT_INDEX]);
 
         int usernameSize = ByteConversion.byteToInt(bytes[USERNAME_LENGTH_INDEX]);
         String username = new String(bytes, USERNAME_INDEX, usernameSize);
 
-        int nextIndex = TCP_PORT_SIZE + FILE_COUNT_SIZE + 1 /* username length byte */ + usernameSize;
+        int nextIndex = ID_SIZE + VERSION_SIZE + TCP_PORT_SIZE + FILE_COUNT_SIZE + 1 /* username length byte */ + usernameSize;
         int filenameSize = ByteConversion.byteToInt(bytes[nextIndex]);
         nextIndex++;
 
@@ -82,7 +93,7 @@ public final class FilenameSetProtocol {
      * @param username the username
      * @return a list of datagram packet's data.
      */
-    public static List<byte[]> parseFileList(File[] files, Short tcpPort, String username) {
+    public static List<byte[]> parseFileList(File[] files, Integer tcpPort, String username) {
 
         // Instantiate lists
         LinkedList<String> filenames = getFilenames(files);
@@ -127,7 +138,6 @@ public final class FilenameSetProtocol {
         return packets;
     }
 
-    // FIXME : Rearrange to a files util class
     private static LinkedList<String> getFilenames(File[] files) {
 
         LinkedList<String> filenames = new LinkedList<>();
@@ -139,7 +149,6 @@ public final class FilenameSetProtocol {
         return filenames;
     }
 
-    // FIXME : Rearrange to a bytes util class
     private static int addBytes(byte[] toAdd, byte[] container, int offset) {
 
         int i;
@@ -151,14 +160,19 @@ public final class FilenameSetProtocol {
         return toAdd.length;
     }
 
-    private static byte[] createDataHeader(Short tcpPort, String username) {
+    private static byte[] createDataHeader(Integer tcpPort, String username) {
 
-        byte[] header = new byte[TCP_PORT_SIZE + FILE_COUNT_SIZE + 1 /* username length byte */ + username.length()];
+        byte[] header = new byte[ID_SIZE + VERSION_SIZE + TCP_PORT_SIZE + FILE_COUNT_SIZE + 1 /* username length byte */ + username.length()];
 
         int index = 0;
 
+        // Add Protocol ID & Version
+        header[index] = ByteConversion.intToByte(PROTOCOL_ID);
+        index++;
+        header[index] = ByteConversion.intToByte(PROTOCOL_VERSION);
+        index++;
         // Convert tcp Port
-        byte[] portBytes = ByteConversion.shortToBytes(tcpPort.shortValue());
+        byte[] portBytes = ByteConversion.intToBytes(tcpPort);
         index += addBytes(portBytes, header, index);
         // Skip file count byte
         index++;
