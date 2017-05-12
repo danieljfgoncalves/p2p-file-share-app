@@ -47,8 +47,8 @@ public class P2PFileShareApp {
         Directory dwlDir = null;
         try {
             shdDir = new Directory(Application.settings().getShdDir());
-            shdDir.watch(); // Activate watch service
             dwlDir = new Directory(Application.settings().getDownloadsDir());
+            shdDir.watch(); // Activate watch service
             dwlDir.watch();
         } catch (IOException e) {
             Logger.getLogger(P2PFileShareApp.class.getName()).log(Level.SEVERE, "Open directories failed.", e);
@@ -61,8 +61,6 @@ public class P2PFileShareApp {
                     JOptionPane.WARNING_MESSAGE);
 
             System.exit(Constants.SOCKET_FAILED);
-        } catch (InterruptedException e) {
-            Logger.getLogger(P2PFileShareApp.class.getName()).log(Level.WARNING, "A watch service on directories failed.", e);
         }
 
         // Allocated TCP Port
@@ -84,10 +82,11 @@ public class P2PFileShareApp {
         }
         communicationsController.OpenTCPComunications(tcpSocket, shdDir, dwlDir);
 
-        // TODO : Remaining App flow
+        // TODO : Remaining App flow (UI Frames)
 
+        System.out.println("sleeping");
         try {
-            Thread.sleep(10 * 1000);
+            Thread.sleep(60 * 1000);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
