@@ -1,4 +1,4 @@
-import application.OpenCommunicationsController;
+import application.CommunicationsController;
 import domain.Directory;
 import domain.FilenameItemSet;
 import settings.Application;
@@ -45,7 +45,7 @@ public class P2PFileShareApp {
         FilenameItemSet filenameSet = new FilenameItemSet();
         Directory shdDir = null;
         Directory dwlDir = null;
-        try {
+        try { // FIXME : Refactor to a controller ??
             shdDir = new Directory(Application.settings().getShdDir());
             dwlDir = new Directory(Application.settings().getDownloadsDir());
             shdDir.watch(); // Activate watch service
@@ -67,9 +67,9 @@ public class P2PFileShareApp {
         Integer tcpPort = tcpSocket.getLocalPort();
 
         // Open Communications Controller
-        OpenCommunicationsController communicationsController = new OpenCommunicationsController();
+        CommunicationsController communicationsController = null;
         try {
-            communicationsController.OpenUDPComunications(udpSocket, shdDir, filenameSet, tcpPort);
+            communicationsController = new CommunicationsController(udpSocket, shdDir, filenameSet, tcpPort, tcpSocket, dwlDir);
         } catch (SocketException e) {
             Logger.getLogger(P2PFileShareApp.class.getName()).log(Level.WARNING, "Send broadcast packet failed.", e);
 
@@ -80,9 +80,11 @@ public class P2PFileShareApp {
                     WARNING_PANE_TITLE,
                     JOptionPane.WARNING_MESSAGE);
         }
-        communicationsController.OpenTCPComunications(tcpSocket, shdDir, dwlDir);
-
+        // Open communications
+        communicationsController.openUdpCommunications();
+        communicationsController.openTcpCommunications();
         // TODO : Remaining App flow (UI Frames)
+
 
         System.out.println("sleeping");
         try {
