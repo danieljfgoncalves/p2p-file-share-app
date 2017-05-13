@@ -1,5 +1,7 @@
 package domain;
 
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
 import settings.Application;
 
 import java.net.InetAddress;
@@ -15,13 +17,17 @@ import java.util.TimerTask;
  */
 public class FilenameItem extends Observable {
 
+    // TODO : IF possible send file size too.
+
     private String filename;
+    // JavaFX
+    private final StringProperty filenameProperty = new SimpleStringProperty(filename);
     private String username;
+    private final StringProperty usernameProperty = new SimpleStringProperty(username);
     private InetAddress host;
     private Integer tcpPort;
     private Boolean active;
     private Timer timer; // Timer to trigger state if refresh time limit is reached.
-
     public FilenameItem(String filename, String username, InetAddress hostAddress, Integer tcpPort) {
 
         this.filename = filename;
@@ -34,6 +40,14 @@ public class FilenameItem extends Observable {
         // Set timer to null
         this.timer = null;
 
+    }
+
+    public StringProperty filenameProperty() {
+        return filenameProperty;
+    }
+
+    public StringProperty usernameProperty() {
+        return filenameProperty;
     }
 
     public String getFilename() {

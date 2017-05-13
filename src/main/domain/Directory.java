@@ -47,6 +47,11 @@ public class Directory extends Observable {
         return directory.toFile().getAbsolutePath();
     }
 
+    public String getDirectoryName() {
+
+        return directory.getFileName().toString();
+    }
+
     public File[] getFiles() throws IOException {
 
         File folder = this.directory.toFile();

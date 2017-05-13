@@ -107,7 +107,7 @@ public class UdpCommunication {
             // FIXME : erase test
             System.out.println("Files to share:\n");
             for (FilenameItem f :
-                    filenames.getSet()) {
+                    filenames.getList()) {
                 System.out.printf("%s | %s | %s | %s\n",
                         f.getFilename(),
                         f.getUsername(),
