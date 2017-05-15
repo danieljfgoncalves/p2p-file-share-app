@@ -47,7 +47,9 @@ public class TcpCommunication {
         }
     }
 
-    public void download(String filename, InetAddress host, int tcpPort) throws IOException {
+    public void download(String filename, InetAddress host, int tcpPort, File toFile) throws IOException {
+
+        File newFile = (toFile == null) ? new File(downloadDir.getAbsoluteDirPath(), filename) : toFile;
 
         Socket clientSocket = new Socket(host, tcpPort);
 
@@ -62,9 +64,11 @@ public class TcpCommunication {
         byte[] fileBytes = new byte[fileSize];
         income.read(fileBytes, 0, fileBytes.length);
         // Write to file
-        File downloadedFile = new File(downloadDir.getAbsoluteDirPath(), filename);
+        File downloadedFile = newFile;
         FileOutputStream fos = new FileOutputStream(downloadedFile);
         fos.write(fileBytes);
+
+        //FIXME : images not downloading correctly
 
         // Close streams
         fos.close();

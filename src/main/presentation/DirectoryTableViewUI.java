@@ -9,6 +9,7 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableColumn.CellDataFeatures;
 import javafx.scene.control.TableView;
 import javafx.util.Callback;
+import util.ByteUtil;
 
 import javax.swing.*;
 import java.io.File;
@@ -78,6 +79,8 @@ public class DirectoryTableViewUI extends TableView<File> implements Observer {
                 return new SimpleStringProperty(f.getValue().getName());
             }
         });
+        nameColumn.setMinWidth(200);
+
         sizeColumn = new TableColumn<>("Size");
         sizeColumn.setCellValueFactory(new Callback<CellDataFeatures<File, String>, ObservableValue<String>>() {
             @Override
@@ -85,9 +88,12 @@ public class DirectoryTableViewUI extends TableView<File> implements Observer {
 
                 // f.getValue() returns the FilenameItem instance for a particular TableView row
 
-                return new SimpleStringProperty(String.format("%d MB", (f.getValue().length() / 1000)));
+                return new SimpleStringProperty(ByteUtil.readableByteCount(f.getValue().length(), true));
             }
         });
+        sizeColumn.setMinWidth(50);
+
+        setMinWidth(nameColumn.getMinWidth() + sizeColumn.getMinWidth());
 
         getColumns().setAll(nameColumn, sizeColumn);
         setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);

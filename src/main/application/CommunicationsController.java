@@ -1,13 +1,14 @@
 package application;
 
 import domain.Directory;
-import domain.FilenameItemSet;
+import domain.FilenameItem;
+import domain.FilenameItemList;
 import networking.TcpCommunication;
 import networking.UdpCommunication;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.DatagramSocket;
-import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.SocketException;
 
@@ -18,11 +19,11 @@ import java.net.SocketException;
  */
 public class CommunicationsController {
 
-    private UdpCommunication udp;
-    private TcpCommunication tcp;
+    private UdpCommunication udp = null;
+    private TcpCommunication tcp = null;
 
     public CommunicationsController(DatagramSocket udpSocket, Directory sharedDir,
-                                    FilenameItemSet filenameSet, Integer tcpPort,
+                                    FilenameItemList filenameSet, Integer tcpPort,
                                     ServerSocket tcpSocket, Directory downloadDir) throws SocketException {
 
         udp = new UdpCommunication(udpSocket, sharedDir, filenameSet, tcpPort);
@@ -30,15 +31,16 @@ public class CommunicationsController {
     }
 
     public void openUdpCommunications() {
-        udp.start();
+
+        if (udp != null) udp.start();
     }
 
     public void openTcpCommunications() {
-        tcp.start();
+        if (tcp != null) tcp.start();
     }
 
-    public void downloadFile(String filename, InetAddress host, int tcpPort) throws IOException {
+    public void downloadFile(FilenameItem item, File newFile) throws IOException {
 
-        tcp.download(filename, host, tcpPort);
+        if (tcp != null) tcp.download(item.getFilename(), item.getHost(), item.getTcpPort(), newFile);
     }
 }

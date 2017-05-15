@@ -2,7 +2,7 @@ package networking;
 
 import domain.Directory;
 import domain.FilenameItem;
-import domain.FilenameItemSet;
+import domain.FilenameItemList;
 import domain.FilenameSetProtocol;
 import settings.Application;
 import util.Constants;
@@ -14,6 +14,7 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -30,17 +31,15 @@ public class UdpCommunication {
     private final DatagramSocket udpSocket;
     private final Integer tcpPort;
     private final Thread receiverThread;
-    private final FilenameItemSet filenames;
+    private final FilenameItemList filenames;
     private final Directory sharedDirectory;
     private final Timer sendingTimer;
 
-    public UdpCommunication(DatagramSocket socket, Directory sharedDir, FilenameItemSet filenamesSet, Integer tcpPort)
+    public UdpCommunication(DatagramSocket socket, Directory sharedDir, FilenameItemList filenamesSet, Integer tcpPort)
             throws SocketException {
 
         udpSocket = socket;
         udpSocket.setBroadcast(true);
-        // udpSocket.setSoTimeout(TIMEOUT * 1000); // FIXME : set the socket timeout
-
         this.tcpPort = tcpPort;
         sendingTimer = new Timer();
         receiverThread = new Thread(new UdpReceiver());
@@ -58,15 +57,6 @@ public class UdpCommunication {
                 new UdpSender(), SEND_LIST_DELAY * 1000, Application.settings().getBroadcastTimeInterval() * 1000);
     }
 
-    public void kill() { // FIXME: Review
-
-        // Terminates receiver server
-        receiverThread.interrupt();
-        // Terminates sending timer
-        sendingTimer.cancel();
-        sendingTimer.purge();
-    }
-
     private void receiverServer() throws IOException {
 
         byte[] data = new byte[Constants.PAYLOAD_SIZE];
@@ -77,9 +67,6 @@ public class UdpCommunication {
         datagram is received (source IP address and source port number).
         */
         DatagramPacket udpPacket = new DatagramPacket(data, data.length);
-
-        System.out.println("Listening for peers files to share.");
-
         while (true) {
 
             udpPacket.setData(data);
@@ -93,29 +80,16 @@ public class UdpCommunication {
 
             // TODO: Uncomment after tests
             //if (udpPacket.getAddress().equals(udpSocket.getLocalAddress())) {
-
-                /* After receiving the request the source IP address and source port number are
-                stored in the DatagramPacket object, so there is no need to change then when
-                sending a reply because the same DatagramPacket is used for that purpose. Source
-                IP address and source port number are printed at the server console. */
-            System.out.println("Request from: " + udpPacket.getAddress().getHostAddress() +
-                    " port: " + udpPacket.getPort());
-
-            FilenameSetProtocol.parsePacket(filenames, udpPacket.getData(), udpPacket.getAddress());
-            filenames.notifyChanges();
-
+            List<FilenameItem> newItems = FilenameSetProtocol.parsePacket(udpPacket.getData(), udpPacket.getAddress());
             // FIXME : erase test
-            System.out.println("Files to share:\n");
+            System.out.printf("[Received] <");
             for (FilenameItem f :
-                    filenames.getList()) {
-                System.out.printf("%s | %s | %s | %s\n",
-                        f.getFilename(),
-                        f.getUsername(),
-                        f.getHost().getHostAddress(),
-                        f.getTcpPort().toString());
+                    newItems) {
+                System.out.printf(" %s;", f.getFilename());
             }
-            System.out.println("/**************************/\n");
+            System.out.println(" >");
 
+            filenames.addAll(newItems);
             //}
         }
     }
@@ -129,12 +103,12 @@ public class UdpCommunication {
         File[] files = this.sharedDirectory.getFiles();
 
         // FIXME : erase test
-        System.out.println("Sent Files:\n");
+        System.out.printf("[Sent] <");
         for (File f :
                 files) {
-            System.out.println(f.getName());
+            System.out.printf(" %s;", f.getName());
         }
-        System.out.println("/**************************/\n");
+        System.out.println(" >");
 
         if (files.length > 0) { // If no files to send ignore
 
@@ -151,10 +125,7 @@ public class UdpCommunication {
                 udpPacket.setLength(data.length);
                 // Send packet
                 udpSocket.send(udpPacket);
-
-                System.out.println("Sent file list to share with peers.");
             }
-
         }
     }
 

@@ -1,8 +1,9 @@
 package tests.domain;
 
 import domain.FilenameItem;
-import domain.FilenameItemSet;
+import domain.FilenameItemList;
 import domain.FilenameSetProtocol;
+import settings.Application;
 
 import java.io.File;
 import java.net.InetAddress;
@@ -26,7 +27,7 @@ public class FilenameSetProtocolTest {
     @org.junit.Before
     public void setUp() throws Exception {
 
-        username = "User1";
+        username = Application.settings().getUsername();
         addr = InetAddress.getByName("127.0.0.1");
         tcpPort = 8888;
 
@@ -42,7 +43,7 @@ public class FilenameSetProtocolTest {
     public void ensureSetIsEqualAfterParsing() throws Exception {
 
         System.out.println("ensureSetIsEqualAfterParsing");
-        FilenameItemSet fnSet1 = new FilenameItemSet();
+        FilenameItemList fnSet1 = new FilenameItemList();
         fnSet1.add(new FilenameItem("file1", username, addr, tcpPort));
         fnSet1.add(new FilenameItem("file2", username, addr, tcpPort));
         fnSet1.add(new FilenameItem("file3", username, addr, tcpPort));
@@ -51,11 +52,11 @@ public class FilenameSetProtocolTest {
 
         List<byte[]> bytes = FilenameSetProtocol.parseFileList(files, tcpPort);
 
-        FilenameItemSet fnSet2 = new FilenameItemSet();
+        FilenameItemList fnSet2 = new FilenameItemList();
 
         for (byte[] packet :
                 bytes) {
-            FilenameSetProtocol.parsePacket(fnSet2, packet, addr);
+            fnSet2.addAll(FilenameSetProtocol.parsePacket(packet, addr));
         }
 
         assertThat(fnSet1, is(fnSet2));

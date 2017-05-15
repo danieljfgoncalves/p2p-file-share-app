@@ -12,7 +12,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 /**
- * Represents a application protocol (version 1) to parse a datagram packet into a FilenameItemSet.
+ * Represents a application protocol (version 1) to parse a datagram packet into a FilenameItemList.
  * <p>
  * Created by danielGoncalves on 10/05/17.
  */
@@ -45,14 +45,17 @@ public final class FilenameSetProtocol {
     }
 
     /**
-     * Parses a byte array and adds it to the filename set.
+     * Parses a byte array and returns a list of filename items.
      *
-     * @param set         the filename set to add items
      * @param bytes       the data with the items
      * @param hostAddress the address that sent the data
+     *
+     * @return a list of filename items
      */
-    public static void parsePacket(FilenameItemSet set, byte[] bytes, InetAddress hostAddress)
+    public static List<FilenameItem> parsePacket(byte[] bytes, InetAddress hostAddress)
             throws IllegalStateException {
+
+        List<FilenameItem> filenames = new ArrayList<>();
 
         if (bytes[ID_INDEX] != PROTOCOL_ID || bytes[VERSION_INDEX] != PROTOCOL_VERSION) {
             throw new IllegalStateException("Packet does not abide by this protocol.");
@@ -75,7 +78,9 @@ public final class FilenameSetProtocol {
 
             FilenameItem item = new FilenameItem(filename, username, hostAddress, tcpPort);
 
-            set.add(item); // add to set
+            // add to list
+            filenames.add(item);
+
 
             // Set next filenameSize && nextItem
             nextIndex += filenameSize;
@@ -83,7 +88,7 @@ public final class FilenameSetProtocol {
             nextIndex++;
         }
 
-        set.notifyChanges(); // Notify observers of changes to filenameSet
+        return filenames;
     }
 
     /**

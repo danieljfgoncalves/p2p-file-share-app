@@ -6,8 +6,11 @@ import settings.Application;
 
 import java.net.InetAddress;
 import java.util.Observable;
-import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 
 /**
  * <p>
@@ -19,15 +22,18 @@ public class FilenameItem extends Observable {
 
     // TODO : IF possible send file size too.
 
-    private String filename;
     // JavaFX
-    private final StringProperty filenameProperty = new SimpleStringProperty(filename);
-    private String username;
-    private final StringProperty usernameProperty = new SimpleStringProperty(username);
-    private InetAddress host;
-    private Integer tcpPort;
+    private final StringProperty filenameProperty;
+    private final StringProperty usernameProperty;
+
+    private final String filename;
+    private final String username;
+    private final InetAddress host;
+    private final Integer tcpPort;
+    private final ScheduledExecutorService scheduler;
     private Boolean active;
-    private Timer timer; // Timer to trigger state if refresh time limit is reached.
+    private ScheduledFuture<?> futureTask;
+
     public FilenameItem(String filename, String username, InetAddress hostAddress, Integer tcpPort) {
 
         this.filename = filename;
@@ -35,11 +41,14 @@ public class FilenameItem extends Observable {
         this.host = hostAddress;
         this.tcpPort = tcpPort;
 
-        // active state;
-        this.active = true;
-        // Set timer to null
-        this.timer = null;
+        filenameProperty = new SimpleStringProperty(filename);
+        usernameProperty = new SimpleStringProperty(username);
 
+        // active state;
+        active = true;
+        // Instantiate scheduler
+        scheduler = Executors.newScheduledThreadPool(1);
+        futureTask = null;
     }
 
     public StringProperty filenameProperty() {
@@ -47,7 +56,7 @@ public class FilenameItem extends Observable {
     }
 
     public StringProperty usernameProperty() {
-        return filenameProperty;
+        return usernameProperty;
     }
 
     public String getFilename() {
@@ -75,14 +84,42 @@ public class FilenameItem extends Observable {
      */
     public void refresh() {
 
-        this.timer = new Timer();
-        this.timer.schedule
-                (new ChangeStateTimerTask(), Application.settings().getFileRefreshTime() * 1000);
+        if (futureTask != null) {
+            cancel();
+        }
+        activate();
+        System.out.println("[Refresh] " + filename);
+    }
+
+    public void activate() {
+
+        if (futureTask == null) {
+            futureTask = scheduler.schedule(
+                    new ChangeStateTimerTask(this),
+                    Application.settings().getFileRefreshTime(),
+                    TimeUnit.SECONDS);
+        }
+    }
+
+    private void cancel() {
+
+        if (futureTask != null) {
+            futureTask.cancel(true);
+        }
+    }
+
+    public void shutdown() {
+
+        cancel();
+        scheduler.shutdownNow();
+        System.out.println("[Shutdown] " + filename);
     }
 
     private void deactivate() {
 
         this.active = false;
+        // Shutdown
+        shutdown();
         // Notify observers
         setChanged();
         notifyObservers();
@@ -115,10 +152,18 @@ public class FilenameItem extends Observable {
      */
     private class ChangeStateTimerTask extends TimerTask {
 
+        private final FilenameItem item;
+
+        private ChangeStateTimerTask(FilenameItem filenameItem) {
+
+            item = filenameItem;
+        }
+
         @Override
         public void run() {
 
-            deactivate();
+            System.out.println("[Deactivate]" + item.filename);
+            item.deactivate();
         }
     }
 }

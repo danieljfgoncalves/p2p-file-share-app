@@ -3,6 +3,7 @@ package domain;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
+import java.util.Collection;
 import java.util.Observable;
 import java.util.Observer;
 
@@ -11,11 +12,11 @@ import java.util.Observer;
  * <p>
  * Created by danielGoncalves on 09/05/17.
  */
-public class FilenameItemSet implements Observer {
+public class FilenameItemList implements Observer {
 
     private ObservableList<FilenameItem> list;
 
-    public FilenameItemSet() {
+    public FilenameItemList() {
         this.list = FXCollections.observableArrayList();
     }
 
@@ -24,14 +25,30 @@ public class FilenameItemSet implements Observer {
         if (!item.isActive()) {
             return false;
         }
-        if (this.list.contains(item)) {
+        // If list already contains item refresh scheduler
+        int index = list.indexOf(item);
+        if (index >= 0) {
 
-            this.remove(item);
+            FilenameItem found = list.get(index);
+            found.refresh();
+            return false;
         }
-        item.refresh();
-        item.addObserver(this);
 
+        // If it's a new item add to list
+        item.addObserver(this);
+        item.activate();
         return this.list.add(item);
+    }
+
+    public boolean addAll(Collection<FilenameItem> collection) {
+
+        boolean ret = true;
+        for (FilenameItem filename :
+                collection) {
+            if (!add(filename)) ret = !ret;
+        }
+
+        return ret;
     }
 
     public boolean remove(FilenameItem item) {
@@ -46,11 +63,14 @@ public class FilenameItemSet implements Observer {
     @Override
     public void update(Observable o, Object arg) {
 
-        if (o instanceof FilenameItem) {
+        // MUTEX : because of race condition when updating more than one observable
+        synchronized (this) {
+            if (o instanceof FilenameItem) {
 
-            FilenameItem item = (FilenameItem) o;
-            if (!item.isActive()) {
-                remove(item);
+                FilenameItem item = (FilenameItem) o;
+                if (!item.isActive()) {
+                    remove(item);
+                }
             }
         }
     }
@@ -60,7 +80,7 @@ public class FilenameItemSet implements Observer {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        FilenameItemSet that = (FilenameItemSet) o;
+        FilenameItemList that = (FilenameItemList) o;
 
         return list.equals(that.list);
     }

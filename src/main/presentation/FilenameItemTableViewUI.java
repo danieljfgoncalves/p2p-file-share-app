@@ -1,11 +1,9 @@
 package presentation;
 
 import domain.FilenameItem;
-import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
-import javafx.util.Callback;
 
 /**
  * Represents a filename item tableview.
@@ -24,10 +22,10 @@ public class FilenameItemTableViewUI extends TableView<FilenameItem> {
 
         data = set;
 
-        setItems(data);
-
         // define the table columns.
         createColumns();
+        // Set table's items
+        setItems(data);
     }
 
 
@@ -35,25 +33,14 @@ public class FilenameItemTableViewUI extends TableView<FilenameItem> {
     private void createColumns() {
 
         fileColumn = new TableColumn<>("File");
-        fileColumn.setCellValueFactory(new Callback<TableColumn.CellDataFeatures<FilenameItem, String>, ObservableValue<String>>() {
-            @Override
-            public ObservableValue<String> call(TableColumn.CellDataFeatures<FilenameItem, String> f) {
+        fileColumn.setCellValueFactory(cellData -> cellData.getValue().filenameProperty());
+        fileColumn.setMinWidth(250);
 
-                // f.getValue() returns the FilenameItem instance for a particular TableView row
-
-                return f.getValue().filenameProperty();
-            }
-        });
         usernameColumn = new TableColumn<>("User");
-        usernameColumn.setCellValueFactory(new Callback<TableColumn.CellDataFeatures<FilenameItem, String>, ObservableValue<String>>() {
-            @Override
-            public ObservableValue<String> call(TableColumn.CellDataFeatures<FilenameItem, String> f) {
+        usernameColumn.setCellValueFactory(cellData -> cellData.getValue().usernameProperty());
+        usernameColumn.setMinWidth(250);
 
-                // f.getValue() returns the FilenameItem instance for a particular TableView row
-
-                return f.getValue().usernameProperty();
-            }
-        });
+        setMinWidth(fileColumn.getMinWidth() + usernameColumn.getMinWidth());
 
         getColumns().setAll(fileColumn, usernameColumn);
         setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
