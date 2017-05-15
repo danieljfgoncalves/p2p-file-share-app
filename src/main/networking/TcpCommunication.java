@@ -47,7 +47,7 @@ public class TcpCommunication {
         }
     }
 
-    public void download(String filename, InetAddress host, int tcpPort, File toFile) throws IOException {
+    public void download(String filename, InetAddress host, int tcpPort, File toFile) throws IOException, IllegalArgumentException {
 
         File newFile = (toFile == null) ? new File(downloadDir.getAbsoluteDirPath(), filename) : toFile;
 
@@ -55,28 +55,31 @@ public class TcpCommunication {
 
         DataOutputStream outcome = new DataOutputStream(clientSocket.getOutputStream());
         DataInputStream income = new DataInputStream(clientSocket.getInputStream());
+        FileOutputStream fos = null;
         // Send filename
         outcome.writeInt(filename.length());
         outcome.write(filename.getBytes(), 0, filename.length());
         // Receive file size
         int fileSize = (int) income.readLong();
-        // Prepare file bytes
-        byte[] fileBytes = new byte[fileSize];
-        income.read(fileBytes, 0, fileBytes.length);
-        // Write to file
-        File downloadedFile = newFile;
-        FileOutputStream fos = new FileOutputStream(downloadedFile);
-        fos.write(fileBytes);
+        try {
+            if (fileSize < 0) throw new IllegalArgumentException("File is not available anymore.");
+            // Prepare file bytes
+            byte[] fileBytes = new byte[fileSize];
+            income.read(fileBytes, 0, fileBytes.length);
+            // Write to file
+            File downloadedFile = newFile;
+            fos = new FileOutputStream(downloadedFile);
+            fos.write(fileBytes);
+            System.out.println("Downloaded the file: " + filename + " to: " + clientSocket.getInetAddress().getHostAddress());
+        } finally {
 
+            // Close streams
+            if (fos != null) fos.close();
+            outcome.close();
+            income.close();
+            clientSocket.close();
+        }
         //FIXME : images not downloading correctly
-
-        // Close streams
-        fos.close();
-        outcome.close();
-        income.close();
-        clientSocket.close();
-
-        System.out.println("Downloaded the file: " + filename + " to: " + clientSocket.getInetAddress().getHostAddress());
     }
 
     /**
@@ -112,13 +115,14 @@ public class TcpCommunication {
 
             FileInputStream fis = null;
             BufferedInputStream bis = null;
+            DataInputStream income = null;
+            DataOutputStream outcome = null;
 
             // Reply to download request
             try {
-
                 // Open income & outcome connection
-                DataInputStream income = new DataInputStream(connectionSocket.getInputStream());
-                DataOutputStream outcome = new DataOutputStream(connectionSocket.getOutputStream());
+                income = new DataInputStream(connectionSocket.getInputStream());
+                outcome = new DataOutputStream(connectionSocket.getOutputStream());
                 // Request file's name & size to download
                 int filenameSize = income.readInt();
                 byte[] stringBytes = new byte[filenameSize];
@@ -127,10 +131,10 @@ public class TcpCommunication {
                 System.out.println("Requested the file: " + filename);
                 // Get File by received filename
                 File requestFile = sharedDir.getFile(filename);
-                if (requestFile == null) throw new IllegalArgumentException("File doesn't exist.");
                 // Send file size
-                long fileSize = requestFile.length();
+                long fileSize = (requestFile == null) ? -1 : requestFile.length();
                 outcome.writeLong(fileSize);
+                if (requestFile == null) throw new IllegalArgumentException("File not available anymore.");
                 // Send file
                 byte[] fileBytes = new byte[(int) fileSize];
                 fis = new FileInputStream(requestFile);
@@ -139,19 +143,20 @@ public class TcpCommunication {
                 outcome.write(fileBytes, 0, fileBytes.length); // Writes file to socket
                 // Flush stream
                 outcome.flush();
-
                 System.out.println("Uploaded the file: " + filename + " to: " + connectionSocket.getInetAddress().getHostAddress());
 
             } catch (IOException | IllegalArgumentException e) {
-                e.printStackTrace();
+                // e.printStackTrace(); FIXME
             } finally {
                 try {
 
                     if (fis != null) fis.close();
-                    if (fis != null) bis.close();
+                    if (bis != null) bis.close();
+                    if (outcome != null) outcome.close();
+                    if (income != null) income.close();
                     connectionSocket.close();
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    e.printStackTrace(); // FIXME
                 }
             }
         }

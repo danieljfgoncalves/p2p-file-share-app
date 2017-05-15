@@ -39,7 +39,7 @@ public class CommunicationsController {
         if (tcp != null) tcp.start();
     }
 
-    public void downloadFile(FilenameItem item, File newFile) throws IOException {
+    public void downloadFile(FilenameItem item, File newFile) throws IOException, IllegalArgumentException {
 
         if (tcp != null) tcp.download(item.getFilename(), item.getHost(), item.getTcpPort(), newFile);
     }

@@ -13,17 +13,15 @@ import java.nio.file.Files;
  */
 public class AddRemoveSharedFileController {
 
-    public boolean addShareFile(File shdFile) throws IOException {
+    public void addShareFile(File shdFile) throws IOException {
 
         File newFile = new File(Application.settings().getShdDir(), shdFile.getName());
 
         Files.copy(shdFile.toPath(), newFile.toPath());
-
-        return newFile.exists();
     }
 
-    public boolean removeSharedFile(File shdFile) {
+    public void removeSharedFile(File shdFile) {
 
-        return shdFile.delete();
+        shdFile.delete();
     }
 }

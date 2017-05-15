@@ -48,7 +48,7 @@ public class DirectoryTableViewUI extends TableView<File> implements Observer {
         createColumns();
     }
 
-    private void setData() {
+    public void setData() {
 
         try {
             data = FXCollections.observableArrayList(Arrays.asList(dir.getFiles()));

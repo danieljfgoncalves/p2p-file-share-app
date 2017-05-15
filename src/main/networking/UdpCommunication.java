@@ -82,14 +82,15 @@ public class UdpCommunication {
             //if (udpPacket.getAddress().equals(udpSocket.getLocalAddress())) {
             List<FilenameItem> newItems = FilenameSetProtocol.parsePacket(udpPacket.getData(), udpPacket.getAddress());
             // FIXME : erase test
-            System.out.printf("[Received] <");
-            for (FilenameItem f :
-                    newItems) {
-                System.out.printf(" %s;", f.getFilename());
+            if (!newItems.isEmpty()) {
+                System.out.printf("[Received] <");
+                for (FilenameItem f :
+                        newItems) {
+                    System.out.printf(" %s;", f.getFilename());
+                }
+                System.out.println(" >");
+                filenames.addAll(newItems);
             }
-            System.out.println(" >");
-
-            filenames.addAll(newItems);
             //}
         }
     }
@@ -101,14 +102,6 @@ public class UdpCommunication {
         InetAddress broadCast = InetAddress.getByName(BROADCAST_STRING);
 
         File[] files = this.sharedDirectory.getFiles();
-
-        // FIXME : erase test
-        System.out.printf("[Sent] <");
-        for (File f :
-                files) {
-            System.out.printf(" %s;", f.getName());
-        }
-        System.out.println(" >");
 
         if (files.length > 0) { // If no files to send ignore
 
@@ -126,6 +119,14 @@ public class UdpCommunication {
                 // Send packet
                 udpSocket.send(udpPacket);
             }
+
+            // FIXME : erase test
+            System.out.printf("[Sent] <");
+            for (File f :
+                    files) {
+                System.out.printf(" %s;", f.getName());
+            }
+            System.out.println(" >");
         }
     }
 

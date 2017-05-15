@@ -1,9 +1,12 @@
+import application.AddRemoveSharedFileController;
 import application.CommunicationsController;
 import domain.Directory;
 import domain.FilenameItem;
 import domain.FilenameItemList;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanBinding;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
@@ -13,6 +16,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
+import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import presentation.DirectoryTableViewUI;
 import presentation.FilenameItemTableViewUI;
@@ -29,6 +33,7 @@ import java.net.SocketException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -46,12 +51,15 @@ public class P2PFileShareApp extends javafx.application.Application {
     // Components
     private static Stage mainStage;
     // Controllers
-    CommunicationsController communicationsController;
+    private CommunicationsController communicationsController;
+    private AddRemoveSharedFileController addRemoveController;
     private FilenameItemTableViewUI remoteTableView;
     private DirectoryTableViewUI sharedTableView;
     private DirectoryTableViewUI downloadTableView;
     private WorkIndicatorDialog wd = null;
     private Region veil = new Region();
+    private FileChooser openFileChooser;
+    private FileChooser downloadFileChooser;
     // Objects
     private FilenameItemList filenames;
     private Directory shdDir;
@@ -135,6 +143,9 @@ public class P2PFileShareApp extends javafx.application.Application {
         // Open communications
         communicationsController.openUdpCommunications();
         communicationsController.openTcpCommunications();
+
+        // Add/Remove Controller
+        addRemoveController = new AddRemoveSharedFileController();
     }
 
     @Override
@@ -146,6 +157,9 @@ public class P2PFileShareApp extends javafx.application.Application {
         sharedTableView = new DirectoryTableViewUI(shdDir);
         downloadTableView = new DirectoryTableViewUI(dwlDir);
         remoteTableView = new FilenameItemTableViewUI(filenames.getList());
+
+        // Setup filechoosers
+        configureFileChoosers();
 
         primaryStage.setTitle(APP_TITLE);
         // Set main scene
@@ -206,6 +220,22 @@ public class P2PFileShareApp extends javafx.application.Application {
             public void handle(ActionEvent event) {
                 System.out.println("Added a Shared File");
                 // TODO: add file
+                veil.setVisible(true);
+                List<File> filesToAdd = openFileChooser.showOpenMultipleDialog(mainStage);
+                if (filesToAdd != null) {
+
+                    for (File file :
+                            filesToAdd) {
+                        try {
+                            addRemoveController.addShareFile(file);
+                        } catch (IOException e) {
+                            e.printStackTrace(); // FIXME
+                        }
+                    }
+                    sharedTableView.setData();
+                    sharedTableView.refresh();
+                }
+                veil.setVisible(false);
             }
         });
         // Table View selection boolean binding
@@ -219,11 +249,22 @@ public class P2PFileShareApp extends javafx.application.Application {
             public void handle(ActionEvent event) {
                 System.out.println("Removed a Shared File");
                 // TODO: remove file
+                ObservableList<File> filesToRemove = sharedTableView.getSelectionModel().getSelectedItems();
+                for (File file :
+                        filesToRemove) {
+                    addRemoveController.removeSharedFile(file);
+                }
+                sharedTableView.setData();
+                sharedTableView.refresh();
             }
         });
         HBox buttonBox = new HBox(10, addBtn, removeBtn);
 
-        VBox vBox = new VBox(10, sharedTableView, buttonBox);
+        Label paneLbl = new Label("Shared Files");
+        paneLbl.setAlignment(Pos.CENTER);
+        paneLbl.setStyle("-fx-font: bold 14 arial;");
+
+        VBox vBox = new VBox(10, paneLbl, sharedTableView, buttonBox);
         vBox.setPadding(new Insets(10, 30, 20, 30));
 
         return vBox;
@@ -243,8 +284,10 @@ public class P2PFileShareApp extends javafx.application.Application {
             public void handle(ActionEvent event) {
                 System.out.println("Download");
                 // Download
+                veil.setVisible(true);
                 FilenameItem item = remoteTableView.getSelectionModel().getSelectedItem();
                 downloadDialog(item, null);
+                veil.setVisible(false);
             }
         });
         Button downloadToBtn = new Button("Download to..");
@@ -256,11 +299,22 @@ public class P2PFileShareApp extends javafx.application.Application {
             public void handle(ActionEvent event) {
                 System.out.println("Download to");
                 // TODO: download to file
+                veil.setVisible(true);
+                File file = downloadFileChooser.showSaveDialog(mainStage);
+                if (file != null) {
+                    FilenameItem item = remoteTableView.getSelectionModel().getSelectedItem();
+                    downloadDialog(item, file);
+                }
+                veil.setVisible(false);
             }
         });
         HBox buttonBox = new HBox(10, downloadBtn, downloadToBtn);
 
-        VBox vBox = new VBox(10, remoteTableView, buttonBox);
+        Label paneLbl = new Label("Remote Files");
+        paneLbl.setAlignment(Pos.CENTER);
+        paneLbl.setStyle("-fx-font: bold 14 arial;");
+
+        VBox vBox = new VBox(10, paneLbl, remoteTableView, buttonBox);
         vBox.setPadding(new Insets(10, 30, 20, 20));
 
         return vBox;
@@ -270,7 +324,11 @@ public class P2PFileShareApp extends javafx.application.Application {
 
         HBox buttonBox = new HBox(10);
 
-        VBox vBox = new VBox(10, downloadTableView, buttonBox);
+        Label paneLbl = new Label("Downloaded Files");
+        paneLbl.setAlignment(Pos.CENTER);
+        paneLbl.setStyle("-fx-font: bold 14 arial;");
+
+        VBox vBox = new VBox(10, paneLbl, downloadTableView, buttonBox);
         vBox.setPadding(new Insets(10, 30, 20, 20));
 
         return vBox;
@@ -307,24 +365,27 @@ public class P2PFileShareApp extends javafx.application.Application {
 
     private Integer downloadDialog(FilenameItem filename, File newFile) {
 
+        // TODO: If file doesn't exist
         wd = new WorkIndicatorDialog(mainStage.getOwner(), "Downloading " + filename.getFilename() + "...");
 
         wd.addTaskEndNotification(result -> {
             System.out.println(result);
             wd = null; // don't keep the object, cleanup
-            veil.setVisible(false);
         });
 
         wd.exec("done", inputParam -> {
 
-            veil.setVisible(true);
             // Download
             try {
                 communicationsController.downloadFile(filename, newFile);
-                Thread.sleep(5 * 1000);
+                downloadTableView.setData();
+                downloadTableView.refresh();
+                Thread.sleep(2 * 1000); // So we can see the dialog if download is to fast ;) FIXME
             } catch (IOException e) {
-                e.printStackTrace(); // FIXME
+                e.printStackTrace(); // FIXME : Add option pane failed download
                 return -1;
+            } catch (IllegalArgumentException e) {
+                e.printStackTrace(); // FIXME : Add option pane file not available
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
@@ -332,5 +393,42 @@ public class P2PFileShareApp extends javafx.application.Application {
         });
 
         return wd.getResultValue();
+    }
+
+    private FileChooser.ExtensionFilter configureAllExtensionFilter() {
+
+        String[] predefined = Application.settings().getFileExtensions();
+
+        String[] exts = new String[predefined.length];
+
+        for (int i = 0; i < exts.length; i++) {
+
+            exts[i] = "*.".concat(predefined[i]);
+        }
+
+        return new FileChooser.ExtensionFilter("All Permitted", exts);
+    }
+
+    private void configureFileChoosers() {
+
+        ObservableList<FileChooser.ExtensionFilter> filters = FXCollections.observableArrayList();
+
+        for (String title :
+                Application.settings().getFileExtensions()) {
+
+            String ext = "*.".concat(title);
+
+            filters.add(new FileChooser.ExtensionFilter(title.toUpperCase(), ext));
+        }
+
+        openFileChooser = new FileChooser();
+        openFileChooser.setTitle("Share File..");
+        openFileChooser.getExtensionFilters().add(configureAllExtensionFilter());
+        openFileChooser.getExtensionFilters().addAll(filters);
+
+        downloadFileChooser = new FileChooser();
+        downloadFileChooser.setTitle("Download To..");
+        downloadFileChooser.getExtensionFilters().add(configureAllExtensionFilter());
+        downloadFileChooser.getExtensionFilters().addAll(filters);
     }
 }
