@@ -72,19 +72,19 @@ public class UdpCommunication {
             */
             udpSocket.receive(udpPacket);
 
-//            if (!isLocalAddress(udpPacket.getAddress())) {
-            List<FilenameItem> newItems = FilenameSetProtocol.parsePacket(udpPacket.getData(), udpPacket.getAddress());
+            if (!isLocalAddress(udpPacket.getAddress())) {
+                List<FilenameItem> newItems = FilenameSetProtocol.parsePacket(udpPacket.getData(), udpPacket.getAddress());
 
-            if (!newItems.isEmpty()) {
-                System.out.printf("[Received] <");
-                for (FilenameItem f :
-                        newItems) {
-                    System.out.printf(" %s;", f.getFilename());
+                if (!newItems.isEmpty()) {
+                    System.out.printf("[Received] <");
+                    for (FilenameItem f :
+                            newItems) {
+                        System.out.printf(" %s;", f.getFilename());
+                    }
+                    System.out.println(" >");
+                    filenames.addAll(newItems);
                 }
-                System.out.println(" >");
-                filenames.addAll(newItems);
             }
-//            }
         }
     }
 
