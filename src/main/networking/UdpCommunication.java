@@ -9,14 +9,8 @@ import util.Constants;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.DatagramPacket;
-import java.net.DatagramSocket;
-import java.net.InetAddress;
-import java.net.SocketException;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.net.*;
+import java.util.*;
 
 import static util.Constants.BROADCAST_STRING;
 import static util.Constants.SEND_LIST_DELAY;
@@ -78,10 +72,9 @@ public class UdpCommunication {
             */
             udpSocket.receive(udpPacket);
 
-            // TODO: Uncomment after tests
-            //if (udpPacket.getAddress().equals(udpSocket.getLocalAddress())) {
+//            if (!isLocalAddress(udpPacket.getAddress())) {
             List<FilenameItem> newItems = FilenameSetProtocol.parsePacket(udpPacket.getData(), udpPacket.getAddress());
-            // FIXME : erase test
+
             if (!newItems.isEmpty()) {
                 System.out.printf("[Received] <");
                 for (FilenameItem f :
@@ -91,8 +84,25 @@ public class UdpCommunication {
                 System.out.println(" >");
                 filenames.addAll(newItems);
             }
-            //}
+//            }
         }
+    }
+
+    private boolean isLocalAddress(InetAddress address) throws SocketException {
+
+        Enumeration<NetworkInterface> list = NetworkInterface.getNetworkInterfaces();
+        while (list.hasMoreElements()) {
+
+            NetworkInterface anInterface = list.nextElement();
+            Enumeration<InetAddress> addresses = anInterface.getInetAddresses();
+
+            while (addresses.hasMoreElements()) {
+
+                InetAddress inetAddress = addresses.nextElement();
+                if (address.equals(inetAddress)) return true;
+            }
+        }
+        return false;
     }
 
     private void sendBroadcast() throws IOException {

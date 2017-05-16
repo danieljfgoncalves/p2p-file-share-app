@@ -12,6 +12,7 @@ import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.*;
@@ -24,7 +25,7 @@ import presentation.WorkIndicatorDialog;
 import settings.Application;
 import util.Constants;
 
-import javax.swing.*;
+import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.net.DatagramSocket;
@@ -48,11 +49,10 @@ public class P2PFileShareApp extends javafx.application.Application {
     private static final String TCP_LBL = "TCP Port: ";
     private static final String DATE_LBL = "Date: ";
     private static final String GROUP_LBL = "Group: ";
+
     // Components
     private static Stage mainStage;
-    // Controllers
-    private CommunicationsController communicationsController;
-    private AddRemoveSharedFileController addRemoveController;
+    private Desktop desktop;
     private FilenameItemTableViewUI remoteTableView;
     private DirectoryTableViewUI sharedTableView;
     private DirectoryTableViewUI downloadTableView;
@@ -60,6 +60,11 @@ public class P2PFileShareApp extends javafx.application.Application {
     private Region veil = new Region();
     private FileChooser openFileChooser;
     private FileChooser downloadFileChooser;
+
+    // Controllers
+    private CommunicationsController communicationsController;
+    private AddRemoveSharedFileController addRemoveController;
+
     // Objects
     private FilenameItemList filenames;
     private Directory shdDir;
@@ -92,12 +97,11 @@ public class P2PFileShareApp extends javafx.application.Application {
         } catch (IOException e) {
             Logger.getLogger(P2PFileShareApp.class.getName()).log(Level.SEVERE, "Open sockets failed.", e);
 
-            // PopUp Warning
-            JOptionPane.showMessageDialog(
-                    null,
-                    "Open sockets failed.",
-                    WARNING_PANE_TITLE,
-                    JOptionPane.WARNING_MESSAGE);
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle(WARNING_PANE_TITLE);
+            alert.setHeaderText("Open sockets failed.");
+            alert.setContentText("The app will exit!");
+            alert.showAndWait();
 
             System.exit(Constants.SOCKET_FAILED);
         }
@@ -114,12 +118,11 @@ public class P2PFileShareApp extends javafx.application.Application {
         } catch (IOException e) {
             Logger.getLogger(P2PFileShareApp.class.getName()).log(Level.SEVERE, "Open directories failed.", e);
 
-            // PopUp Warning
-            JOptionPane.showMessageDialog(
-                    null,
-                    "Open directories failed.",
-                    WARNING_PANE_TITLE,
-                    JOptionPane.WARNING_MESSAGE);
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle(WARNING_PANE_TITLE);
+            alert.setHeaderText("Open directories failed.");
+            alert.setContentText("The app will exit!");
+            alert.showAndWait();
 
             System.exit(Constants.SOCKET_FAILED);
         }
@@ -133,12 +136,11 @@ public class P2PFileShareApp extends javafx.application.Application {
         } catch (SocketException e) {
             Logger.getLogger(P2PFileShareApp.class.getName()).log(Level.WARNING, "Send broadcast packet failed.", e);
 
-            // PopUp Warning
-            JOptionPane.showMessageDialog(
-                    null,
-                    "Sending files crashed. Relaunch app or you can still download files.",
-                    WARNING_PANE_TITLE,
-                    JOptionPane.WARNING_MESSAGE);
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setTitle(WARNING_PANE_TITLE);
+            alert.setHeaderText("Send broadcast packet failed.");
+            alert.setContentText("Sending files crashed. Relaunch app or you can still download files.");
+            alert.showAndWait();
         }
         // Open communications
         communicationsController.openUdpCommunications();
@@ -158,13 +160,20 @@ public class P2PFileShareApp extends javafx.application.Application {
         downloadTableView = new DirectoryTableViewUI(dwlDir);
         remoteTableView = new FilenameItemTableViewUI(filenames.getList());
 
-        // Setup filechoosers
+        // Setup file choosers
         configureFileChoosers();
 
         primaryStage.setTitle(APP_TITLE);
         // Set main scene
         primaryStage.setScene(createMainScene());
+
         primaryStage.show();
+
+//        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+//        alert.setTitle("Welcome");
+//        alert.setHeaderText("Welcome to P2P File Share");
+//        alert.setContentText("Enjoy!");
+//        alert.showAndWait();
     }
 
     private Scene createMainScene() {
@@ -187,6 +196,12 @@ public class P2PFileShareApp extends javafx.application.Application {
         // Veil when downloading
         veil.setStyle("-fx-background-color: rgba(0, 0, 0, 0.3)");
         veil.setVisible(false);
+
+        // Create desktop
+        desktop = null;
+        if (Desktop.isDesktopSupported()) {
+            desktop = Desktop.getDesktop();
+        }
 
         StackPane root = new StackPane();
         root.getChildren().addAll(bp, veil);
@@ -229,7 +244,11 @@ public class P2PFileShareApp extends javafx.application.Application {
                         try {
                             addRemoveController.addShareFile(file);
                         } catch (IOException e) {
-                            e.printStackTrace(); // FIXME
+                            Alert alert = new Alert(Alert.AlertType.WARNING);
+                            alert.setTitle(WARNING_PANE_TITLE);
+                            alert.setHeaderText("Failed to copy file");
+                            alert.setContentText("The file wasn't copied.");
+                            alert.showAndWait();
                         }
                     }
                     sharedTableView.setData();
@@ -322,9 +341,41 @@ public class P2PFileShareApp extends javafx.application.Application {
 
     private Pane createRightPane() {
 
-        HBox buttonBox = new HBox(10);
+        Button openBtn = new Button("Open File");
+        openBtn.setStyle("-fx-font: bold 16 arial; -fx-base: #0CA2B4;" +
+                "-fx-text-fill:white;");
+        openBtn.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                System.out.println("Open a downloaded file");
 
-        Label paneLbl = new Label("Downloaded Files");
+                try {
+                    if (!desktop.isSupported(Desktop.Action.OPEN)) {
+                        throw new IllegalArgumentException("Unsupported open operation.");
+                    }
+                    desktop.open(downloadTableView.getSelectionModel().getSelectedItem());
+                } catch (IOException e) {
+                    Alert alert = new Alert(Alert.AlertType.WARNING);
+                    alert.setTitle(WARNING_PANE_TITLE);
+                    alert.setHeaderText("Failed to open file");
+                    alert.setContentText("The file wasn't open.");
+                    alert.showAndWait();
+                } catch (IllegalArgumentException e) {
+                    Alert alert = new Alert(Alert.AlertType.WARNING);
+                    alert.setTitle(WARNING_PANE_TITLE);
+                    alert.setHeaderText("Open file unsupported");
+                    alert.setContentText("The operating system doesn't support the open file action.");
+                    alert.showAndWait();
+                }
+            }
+        });
+        // Table View selection boolean binding
+        BooleanBinding selectionBind = Bindings.isEmpty(downloadTableView.getSelectionModel().getSelectedItems());
+        openBtn.disableProperty().bind(selectionBind);
+
+        HBox buttonBox = new HBox(10, openBtn);
+
+        Label paneLbl = new Label("Downloads Folder");
         paneLbl.setAlignment(Pos.CENTER);
         paneLbl.setStyle("-fx-font: bold 14 arial;");
 
@@ -366,7 +417,9 @@ public class P2PFileShareApp extends javafx.application.Application {
     private Integer downloadDialog(FilenameItem filename, File newFile) {
 
         // TODO: If file doesn't exist
-        wd = new WorkIndicatorDialog(mainStage.getOwner(), "Downloading " + filename.getFilename() + "...");
+        String tmp = filename.getFilename();
+        if (tmp.length() > 20) tmp = tmp.substring(0, 20);
+        wd = new WorkIndicatorDialog(mainStage.getOwner(), "Downloading " + tmp + "...");
 
         wd.addTaskEndNotification(result -> {
             System.out.println(result);
@@ -375,6 +428,7 @@ public class P2PFileShareApp extends javafx.application.Application {
 
         wd.exec("done", inputParam -> {
 
+            veil.setVisible(true);
             // Download
             try {
                 communicationsController.downloadFile(filename, newFile);
@@ -383,12 +437,17 @@ public class P2PFileShareApp extends javafx.application.Application {
                 Thread.sleep(2 * 1000); // So we can see the dialog if download is to fast ;) FIXME
             } catch (IOException e) {
                 e.printStackTrace(); // FIXME : Add option pane failed download
+
                 return -1;
             } catch (IllegalArgumentException e) {
                 e.printStackTrace(); // FIXME : Add option pane file not available
+
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
+
+            veil.setVisible(false);
+
             return 0;
         });
 

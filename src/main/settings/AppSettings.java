@@ -1,8 +1,6 @@
 package settings;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -47,10 +45,17 @@ public class AppSettings {
         loadProperties();
     }
 
+    private File getConfigFile() {
+        return new File("config.properties");
+    }
+
     private void loadProperties() {
         InputStream propertiesStream = null;
         try {
-            propertiesStream = this.getClass().getClassLoader().getResourceAsStream(PROPERTIES_RESOURCE);
+
+            File configFile = getConfigFile();
+
+            propertiesStream = (configFile.isFile()) ? new FileInputStream(configFile) : this.getClass().getClassLoader().getResourceAsStream(PROPERTIES_RESOURCE);
             if (propertiesStream != null) {
                 this.applicationProperties.load(propertiesStream);
             } else {
