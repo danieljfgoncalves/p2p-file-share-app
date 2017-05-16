@@ -47,7 +47,7 @@ public class FilenameItem extends Observable {
         // active state;
         active = true;
         // Instantiate scheduler
-        scheduler = Executors.newScheduledThreadPool(1);
+        scheduler = Executors.newScheduledThreadPool(10);
         futureTask = null;
     }
 
@@ -98,6 +98,7 @@ public class FilenameItem extends Observable {
                     new ChangeStateTimerTask(this),
                     Application.settings().getFileRefreshTime(),
                     TimeUnit.SECONDS);
+            System.out.println("[Activate] " + filename);
         }
     }
 
@@ -105,6 +106,8 @@ public class FilenameItem extends Observable {
 
         if (futureTask != null) {
             futureTask.cancel(true);
+            futureTask = null;
+            System.out.println("[Cancel] " + filename);
         }
     }
 
@@ -126,25 +129,20 @@ public class FilenameItem extends Observable {
     }
 
     @Override
-    public int hashCode() {
-        int result = filename.hashCode();
-        result = 31 * result + username.hashCode();
-        result = 31 * result + host.hashCode();
-        result = 31 * result + tcpPort.hashCode();
-        return result;
-    }
-
-    @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
         FilenameItem that = (FilenameItem) o;
 
-        if (!filename.equals(that.filename)) return false;
-        if (!username.equals(that.username)) return false;
-        if (!host.equals(that.host)) return false;
-        return tcpPort.equals(that.tcpPort);
+        return filename.equals(that.filename) && username.equals(that.username);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = filename.hashCode();
+        result = 31 * result + username.hashCode();
+        return result;
     }
 
     /**
