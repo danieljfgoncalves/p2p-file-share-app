@@ -12,6 +12,7 @@ public final class Constants {
     public static final String BROADCAST_STRING = "255.255.255.255"; // Broadcast address
     public static final int SEND_LIST_DELAY = 1; // Send list Timer schedule delay
     public static final String WARNING_PANE_TITLE = "SYSTEM FAILURE";
+    public static final String CONFIG_FILENAME = "config.properties";
 
     /**** EXIT STATUS ****/
     public static final int EXIT_SUCCESS = 0;

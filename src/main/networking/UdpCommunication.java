@@ -28,6 +28,7 @@ public class UdpCommunication {
     private final FilenameItemList filenames;
     private final Directory sharedDirectory;
     private final Timer sendingTimer;
+    private final Set<InetAddress> addresses;
 
     public UdpCommunication(DatagramSocket socket, Directory sharedDir, FilenameItemList filenamesSet, Integer tcpPort)
             throws SocketException {
@@ -39,6 +40,11 @@ public class UdpCommunication {
         receiverThread = new Thread(new UdpReceiver());
         sharedDirectory = sharedDir;
         filenames = filenamesSet;
+        addresses = new HashSet<>();
+    }
+
+    public void loadKnownIps() throws UnknownHostException {
+        addresses.addAll(Application.settings().getKnownAddreses());
     }
 
     public void start() {
@@ -73,6 +79,9 @@ public class UdpCommunication {
             udpSocket.receive(udpPacket);
 
             if (!isLocalAddress(udpPacket.getAddress())) {
+
+                addresses.add(udpPacket.getAddress()); // FIXME
+
                 List<FilenameItem> newItems = FilenameSetProtocol.parsePacket(udpPacket.getData(), udpPacket.getAddress());
 
                 if (!newItems.isEmpty()) {
@@ -107,9 +116,7 @@ public class UdpCommunication {
 
     private void sendBroadcast() throws IOException {
 
-        // TODO: Implement suggestion to send to unicast addresses too.
-
-        InetAddress broadCast = InetAddress.getByName(BROADCAST_STRING);
+        addresses.add(InetAddress.getByName(BROADCAST_STRING));
 
         File[] files = this.sharedDirectory.getFiles();
 
@@ -117,19 +124,24 @@ public class UdpCommunication {
 
             LinkedList<byte[]> dataList = new LinkedList<>(FilenameSetProtocol.parseFileList(files, this.tcpPort));
 
-            DatagramPacket udpPacket =
-                    new DatagramPacket(new byte[Constants.PAYLOAD_SIZE], Constants.PAYLOAD_SIZE, broadCast, udpSocket.getLocalPort());
+            List<DatagramPacket> packets = new ArrayList<>();
+            for (InetAddress address :
+                    addresses) {
+                packets.add(new DatagramPacket(new byte[Constants.PAYLOAD_SIZE], Constants.PAYLOAD_SIZE, address, udpSocket.getLocalPort()));
+            }
 
             while (!dataList.isEmpty()) {
 
                 byte[] data = dataList.pop();
 
-                udpPacket.setData(data);
-                udpPacket.setLength(data.length);
-                // Send packet
-                udpSocket.send(udpPacket);
+                for (DatagramPacket udpPacket :
+                        packets) {
+                    udpPacket.setData(data);
+                    udpPacket.setLength(data.length);
+                    // Send packet
+                    udpSocket.send(udpPacket);
+                }
             }
-
             // FIXME : erase test
             System.out.printf("[Sent] <");
             for (File f :
@@ -138,6 +150,24 @@ public class UdpCommunication {
             }
             System.out.println(" >");
         }
+    }
+
+    public boolean addAddress(InetAddress address) {
+
+        return addresses.add(address);
+    }
+
+    public String[] getKnownAddressList() {
+
+        List<String> tmp = new ArrayList<>();
+        for (InetAddress addr :
+                addresses) {
+            tmp.add(addr.getHostAddress());
+        }
+
+        String[] list = new String[tmp.size()];
+
+        return tmp.toArray(list);
     }
 
     /**
