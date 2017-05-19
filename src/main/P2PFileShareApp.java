@@ -13,7 +13,6 @@ import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.Button;
@@ -23,6 +22,7 @@ import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.TextField;
+import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
@@ -251,7 +251,7 @@ public class P2PFileShareApp extends javafx.application.Application {
         MenuBar bar = new MenuBar();
 
         Menu fileMenu = new Menu("File");
-        MenuItem addIpItem = new MenuItem("New Peer's Address");
+        MenuItem addIpItem = new MenuItem("Add Known IPv4 Addresses");
         addIpItem.setAccelerator(new KeyCodeCombination(KeyCode.P, KeyCombination.CONTROL_DOWN));
         addIpItem.setOnAction(new EventHandler<ActionEvent>() {
             @Override
@@ -530,16 +530,17 @@ public class P2PFileShareApp extends javafx.application.Application {
     private void addIpDialog() {
 
         // Create the ip dialog.
-        Dialog<String> dialog = new Dialog<>();
-        dialog.setTitle("Add a Peer's IP Address Dialog");
-        dialog.setHeaderText("Please enter a valid IPv4 address");
+        Dialog<String[]> dialog = new Dialog<>();
+        dialog.setTitle("Add peers IP Addresses Dialog");
+        dialog.setHeaderText("Please enter a valid IPv4 addresses");
 
         // Set the button types.
-        ButtonType addButtonType = new ButtonType("Add", ButtonBar.ButtonData.OK_DONE);
+        ButtonType addButtonType = new ButtonType("Save", ButtonBar.ButtonData.OK_DONE);
         dialog.getDialogPane().getButtonTypes().addAll(addButtonType, ButtonType.CANCEL);
 
         // Create the username and password labels and fields.
         GridPane grid = new GridPane();
+        grid.setAlignment(Pos.CENTER);
         grid.setHgap(10);
         grid.setVgap(10);
         grid.setPadding(new Insets(20, 150, 10, 10));
@@ -547,16 +548,53 @@ public class P2PFileShareApp extends javafx.application.Application {
         TextField textField = ipTxtField();
         textField.setPromptText("ex. 192.168.1.1");
 
+        // =============================
+        ObservableList<String> items = FXCollections.observableArrayList(communicationsController.getKnownIps());
+        items.remove(Constants.BROADCAST_STRING);
+        Collections.sort(items);
+        ListView<String> listView = new ListView<>(items);
+        listView.setPrefSize(70, 150);
+        listView.getSelectionModel().setSelectionMode(
+                SelectionMode.MULTIPLE);
+
+        javafx.scene.image.Image imageAdd = new javafx.scene.image.Image(this.getClass().getClassLoader().getResourceAsStream("add.png"));
+        Button addBtn = new Button();
+        addBtn.setGraphic(new ImageView(imageAdd));
+        addBtn.setDisable(true);
+        addBtn.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                String extvalue = textField.getText().trim().toLowerCase();
+                textField.setText("");
+                if (!extvalue.isEmpty()) {
+                    items.add(extvalue);
+                    Collections.sort(items);
+                }
+            }
+        });
+        BooleanBinding binding = Bindings.isEmpty(listView.getSelectionModel().getSelectedItems());
+        javafx.scene.image.Image imageRemove = new javafx.scene.image.Image(this.getClass().getClassLoader().getResourceAsStream("remove.png"));
+        Button removeBtn = new Button();
+        removeBtn.setGraphic(new ImageView(imageRemove));
+        removeBtn.disableProperty().bind(binding);
+        removeBtn.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                items.removeAll(listView.getSelectionModel().getSelectedItems());
+                Collections.sort(items);
+            }
+        });
+        HBox buttonBox = new HBox(textField, addBtn, removeBtn);
+        buttonBox.setAlignment(Pos.BASELINE_CENTER);
+        // =============================
+
         Label validationLbl = new Label("");
         validationLbl.setStyle("-fx-font: normal 10 arial; -fx-text-fill: #F5A2A2;");
 
-        grid.add(new Label("IPv4 Address:"), 0, 0);
-        grid.add(textField, 1, 0);
-        grid.add(validationLbl, 1, 1);
-
-        // Enable/Disable add button depending on whether a ip address was entered.
-        Node addButton = dialog.getDialogPane().lookupButton(addButtonType);
-        addButton.setDisable(true);
+        grid.add(new Label("IPv4 Known Addresses:"), 0, 0);
+        grid.add(listView, 0, 1);
+        grid.add(buttonBox, 0, 2);
+        grid.add(validationLbl, 0, 3);
 
         String ipv4Regex = "^(25[0-5]|2[0-4]\\d|[0-1]?\\d?\\d)(\\.(25[0-5]|2[0-4]\\d|[0-1]?\\d?\\d)){3}$";
         Pattern ipv4Pattern = Pattern.compile(ipv4Regex, Pattern.CASE_INSENSITIVE);
@@ -565,13 +603,13 @@ public class P2PFileShareApp extends javafx.application.Application {
         textField.textProperty().addListener((observable, oldValue, newValue) -> {
 
             boolean sameAsBroadcast = newValue.equalsIgnoreCase("255.255.255.255");
-            boolean sameAsZeros = newValue.equalsIgnoreCase("0.0.0.0");
+            boolean sameAsZeros = newValue.matches("0+\\.0+\\.0+\\.0+");
 
             Matcher match = ipv4Pattern.matcher(newValue);
 
-            addButton.setDisable(newValue.trim().isEmpty() || sameAsBroadcast || sameAsZeros || !match.matches());
+            addBtn.setDisable(newValue.trim().isEmpty() || sameAsBroadcast || sameAsZeros || !match.matches());
 
-            if (newValue.trim().isEmpty() || sameAsBroadcast || sameAsZeros) {
+            if (sameAsBroadcast || sameAsZeros) {
                 validationLbl.setText("Invalid IPv4!");
             } else {
                 validationLbl.setText("");
@@ -585,21 +623,23 @@ public class P2PFileShareApp extends javafx.application.Application {
         // Convert the result when the add button is clicked.
         dialog.setResultConverter(dialogButton -> {
             if (dialogButton == addButtonType) {
-                return textField.getText();
+                items.add(Constants.BROADCAST_STRING);
+                String[] strings = new String[listView.getItems().size()];
+                return listView.getItems().toArray(strings);
             }
             return null;
         });
-        Optional<String> result = dialog.showAndWait();
+        Optional<String[]> result = dialog.showAndWait();
 
-        result.ifPresent(ipAddress -> {
+        result.ifPresent(ipAddresses -> {
 
             try {
-                communicationsController.addPeerAddress(ipAddress);
+                communicationsController.addPeerAddresses(ipAddresses);
             } catch (UnknownHostException e) {
 
                 Alert alert = new Alert(Alert.AlertType.WARNING);
                 alert.setTitle(WARNING_PANE_TITLE);
-                alert.setHeaderText("Failed to add IPv4");
+                alert.setHeaderText("Failed to add IPv4 Addresses");
                 alert.setContentText("Unknown IPv4 Address.");
                 alert.showAndWait();
             }

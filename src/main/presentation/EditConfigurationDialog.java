@@ -21,10 +21,7 @@ import settings.Application;
 import util.StringUtil;
 
 import java.io.File;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.UnaryOperator;
 
 /**
@@ -97,7 +94,7 @@ public class EditConfigurationDialog extends Dialog<Map<String, String>> {
                             value = (Integer) data;
                         }
                     }
-                    if (value.equals(Application.settings().getTcpPort())) {
+                    if (!value.equals(Application.settings().getTcpPort())) {
                         result.put(AppSettings.TCP_PORT_KEY, value.toString());
                     }
                 }
@@ -112,7 +109,7 @@ public class EditConfigurationDialog extends Dialog<Map<String, String>> {
                             value = (Integer) data;
                         }
                     }
-                    if (value.equals(Application.settings().getUdpPort())) {
+                    if (!value.equals(Application.settings().getUdpPort())) {
                         result.put(AppSettings.UDP_PORT_KEY, value.toString());
                     }
                 }
@@ -120,7 +117,7 @@ public class EditConfigurationDialog extends Dialog<Map<String, String>> {
                 Integer maxUps = maxUpSpinner.getValue();
                 if (maxUps != null) {
                     if (maxUps > 0 && maxUps <= 20) {
-                        if (maxUps.equals(Application.settings().getMaxUploads())) {
+                        if (!maxUps.equals(Application.settings().getMaxUploads())) {
                             result.put(AppSettings.MAX_UPLOADS_KEY, maxUps.toString());
                         }
                     }
@@ -129,7 +126,7 @@ public class EditConfigurationDialog extends Dialog<Map<String, String>> {
                 Integer refresh = refreshSpinner.getValue();
                 if (refresh != null) {
                     if (refresh > 0 && refresh <= 120) {
-                        if (refresh.equals(Application.settings().getFileRefreshTime())) {
+                        if (!refresh.equals(Application.settings().getFileRefreshTime())) {
                             result.put(AppSettings.FILE_REFRESH_TIME_KEY, refresh.toString());
                         }
                     }
@@ -138,7 +135,7 @@ public class EditConfigurationDialog extends Dialog<Map<String, String>> {
                 Integer sendTime = sendSpinner.getValue();
                 if (sendTime != null) {
                     if (sendTime > 0 && sendTime <= 120) {
-                        if (sendTime.equals(Application.settings().getBroadcastTimeInterval())) {
+                        if (!sendTime.equals(Application.settings().getBroadcastTimeInterval())) {
                             result.put(AppSettings.FILE_REFRESH_TIME_KEY, sendTime.toString());
                         }
                     }
@@ -148,7 +145,8 @@ public class EditConfigurationDialog extends Dialog<Map<String, String>> {
                 String[] exts = new String[items.size()];
                 exts = items.toArray(exts);
                 String extString = StringUtil.arrayToString(exts);
-                if (!(extString.isEmpty() || exts.equals(Application.settings().getFileExtensions()))) {
+
+                if (!Arrays.equals(exts, Application.settings().getFileExtensions())) {
 
                     result.put(AppSettings.FILE_EXTENSIONS_KEY, extString);
                 }
@@ -161,8 +159,11 @@ public class EditConfigurationDialog extends Dialog<Map<String, String>> {
     private Pane createNetworkPane() {
 
         Label labelTcp = new Label("TCP Port: ");
+        labelTcp.setAlignment(Pos.CENTER_RIGHT);
         Label labelUdp = new Label("UDP Port: ");
+        labelUdp.setAlignment(Pos.CENTER_RIGHT);
         Label labelMaxUp = new Label("Max Uploads (at once): ");
+        labelMaxUp.setAlignment(Pos.CENTER_RIGHT);
         Label labelRefresh = new Label("Remote File Refresh Limit (in seconds): ");
         Label labelSend = new Label("Send Remote File Announcement Time Interval (in seconds): ");
 

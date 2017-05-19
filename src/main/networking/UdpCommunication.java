@@ -47,6 +47,17 @@ public class UdpCommunication {
         addresses.addAll(Application.settings().getKnownAddreses());
     }
 
+    public List<String> getKnownIps() {
+        List<String> list = new ArrayList<>();
+
+        for (InetAddress address :
+                addresses) {
+            list.add(address.getHostAddress());
+        }
+
+        return list;
+    }
+
     public void start() {
 
         // Start Receiver

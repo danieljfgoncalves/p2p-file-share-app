@@ -11,6 +11,7 @@ import util.StringUtil;
 
 import java.io.*;
 import java.net.*;
+import java.util.List;
 import java.util.Properties;
 
 /**
@@ -49,10 +50,13 @@ public class CommunicationsController {
         if (tcp != null) tcp.download(item.getFilename(), item.getHost(), item.getTcpPort(), newFile);
     }
 
-    public boolean addPeerAddress(String address) throws UnknownHostException {
+    public void addPeerAddresses(String[] addresses) throws UnknownHostException {
 
-        InetAddress inetAddress = InetAddress.getByName(address);
-        return udp.addAddress(inetAddress);
+        for (String address :
+                addresses) {
+            InetAddress inetAddress = InetAddress.getByName(address);
+            udp.addAddress(inetAddress);
+        }
     }
 
     public void saveKnownIpsList() throws IOException {
@@ -69,5 +73,9 @@ public class CommunicationsController {
         FileOutputStream output = new FileOutputStream(config);
         properties.store(output, "Update known ips.");
         output.close();
+    }
+
+    public List<String> getKnownIps() {
+        return udp.getKnownIps();
     }
 }
