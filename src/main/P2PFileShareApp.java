@@ -634,8 +634,16 @@ public class P2PFileShareApp extends javafx.application.Application {
         wd = new WorkIndicatorDialog(mainStage.getOwner(), "Downloading " + tmp + "...");
 
         wd.addTaskEndNotification(result -> {
-            System.out.println(result);
+            System.out.println("DOWNLOAD STATUS: " + result);
             wd = null; // don't keep the object, cleanup
+
+            if ((Integer) result < 0) {
+                Alert alert = new Alert(Alert.AlertType.WARNING);
+                alert.setTitle(WARNING_PANE_TITLE);
+                alert.setHeaderText("Failed to download file");
+                alert.setContentText("The file wasn't downloaded.");
+                alert.showAndWait();
+            }
         });
 
         wd.exec("done", inputParam -> {
@@ -648,8 +656,8 @@ public class P2PFileShareApp extends javafx.application.Application {
                 downloadTableView.refresh();
                 Thread.sleep(2 * 1000); // So we can see the dialog if download is to fast ;)
             } catch (Exception e) {
-                e.printStackTrace(); // FIXME : Add option pane failed download
-                System.out.println("ERRRORORORORORO~~~~~~~~~~~~~~~~~~~~~~");
+                System.out.println(e.getMessage());
+                veil.setVisible(false);
                 return -1;
             }
 
@@ -750,7 +758,7 @@ public class P2PFileShareApp extends javafx.application.Application {
         // Download
         veil.setVisible(true);
         FilenameItem item = remoteTableView.getSelectionModel().getSelectedItem();
-        downloadDialog(item, null);
+        Integer value = downloadDialog(item, null);
         veil.setVisible(false);
     }
 

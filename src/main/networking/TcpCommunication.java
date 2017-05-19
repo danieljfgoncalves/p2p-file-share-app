@@ -66,7 +66,6 @@ public class TcpCommunication {
         // Receive file size
         Long lon = income.readLong();
         int fileSize = lon.intValue();
-        System.out.println("INT VALUE:" + fileSize);
         try {
             if (fileSize < 0) throw new IllegalArgumentException("File is not available anymore.");
             // Prepare file bytes
