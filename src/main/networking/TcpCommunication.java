@@ -38,6 +38,10 @@ public class TcpCommunication {
         serverThread.start(); // Start tcp server
     }
 
+    public void stop() throws IOException {
+        serverSocket.close();
+    }
+
     private void tcpServer() throws IOException {
 
         System.out.println("Waiting for peers to connect (TCP)...");
@@ -97,7 +101,8 @@ public class TcpCommunication {
 
             try {
                 tcpServer(); // Launch tcp server in a new thread
-            } catch (IOException e) {
+            } catch (Exception e) {
+
                 e.printStackTrace(); // FIXME: Treat exceptions
             }
 

@@ -128,6 +128,7 @@ public class FilenameItem extends Observable {
         notifyObservers();
     }
 
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -135,13 +136,14 @@ public class FilenameItem extends Observable {
 
         FilenameItem that = (FilenameItem) o;
 
-        return filename.equals(that.filename) && username.equals(that.username);
+        return filename.equals(that.filename) && username.equals(that.username) && host.equals(that.host);
     }
 
     @Override
     public int hashCode() {
         int result = filename.hashCode();
         result = 31 * result + username.hashCode();
+        result = 31 * result + host.hashCode();
         return result;
     }
 

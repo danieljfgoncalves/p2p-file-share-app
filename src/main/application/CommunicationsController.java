@@ -57,13 +57,16 @@ public class CommunicationsController {
 
     public void saveKnownIpsList() throws IOException {
 
+        File config = new File(Constants.CONFIG_FILENAME);
+
+        if (!config.exists()) config.createNewFile();
+
         Properties properties = new Properties();
-        InputStream input = new FileInputStream(Constants.CONFIG_FILENAME);
+        InputStream input = new FileInputStream(config);
         properties.load(input);
         input.close();
         properties.replace(AppSettings.KNOWN_IPS_KEY, StringUtil.arrayToString(udp.getKnownAddressList()));
-        System.out.println("+++++++++++++++pas+++++++++++++++");
-        FileOutputStream output = new FileOutputStream(Constants.CONFIG_FILENAME);
+        FileOutputStream output = new FileOutputStream(config);
         properties.store(output, "Update known ips.");
         output.close();
     }

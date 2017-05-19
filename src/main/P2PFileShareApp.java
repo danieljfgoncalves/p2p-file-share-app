@@ -1,5 +1,6 @@
 import application.AddRemoveSharedFileController;
 import application.CommunicationsController;
+import application.EditSettingsController;
 import domain.Directory;
 import domain.FilenameItem;
 import domain.FilenameItemList;
@@ -30,10 +31,12 @@ import javafx.scene.paint.Color;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import presentation.DirectoryTableViewUI;
+import presentation.EditConfigurationDialog;
 import presentation.FilenameItemTableViewUI;
 import presentation.WorkIndicatorDialog;
 import settings.Application;
 import util.Constants;
+import util.OsUtils;
 
 import java.awt.*;
 import java.io.File;
@@ -41,10 +44,8 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.*;
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Date;
+import java.util.*;
 import java.util.List;
-import java.util.Optional;
 import java.util.function.UnaryOperator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -79,6 +80,7 @@ public class P2PFileShareApp extends javafx.application.Application {
     // Controllers
     private CommunicationsController communicationsController;
     private AddRemoveSharedFileController addRemoveController;
+    private EditSettingsController editConfigurationController;
 
     // Objects
     private FilenameItemList filenames;
@@ -87,6 +89,12 @@ public class P2PFileShareApp extends javafx.application.Application {
     private Integer tcpPort = 0;
 
     public static void main(String[] args) {
+
+        try {
+            Thread.sleep(5 * 100);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
 
         System.out.println("\n|****************************************|");
         System.out.println("| Launched Serverless P2P File Share App |");
@@ -172,6 +180,8 @@ public class P2PFileShareApp extends javafx.application.Application {
 
         // Add/Remove Controller
         addRemoveController = new AddRemoveSharedFileController();
+        // Edit Config Controller
+        editConfigurationController = new EditSettingsController();
     }
 
     @Override
@@ -247,7 +257,7 @@ public class P2PFileShareApp extends javafx.application.Application {
             @Override
             public void handle(ActionEvent event) {
                 System.out.println("[MenuItem] Add IP");
-                // TODO: add ip
+
                 veil.setVisible(true);
                 addIpDialog();
                 veil.setVisible(false);
@@ -259,15 +269,37 @@ public class P2PFileShareApp extends javafx.application.Application {
             @Override
             public void handle(ActionEvent event) {
                 System.out.println("[MenuItem] Edit Settings");
-                // TODO: edit settings
 
+                veil.setVisible(true);
+                EditConfigurationDialog editDialog = new EditConfigurationDialog(mainStage);
+                Optional<Map<String, String>> result = editDialog.showAndWait();
 
-                try {
-                    restart();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                    System.out.println("ERROR"); // FIXME
-                }
+                result.ifPresent(config -> {
+
+                    if (!config.isEmpty()) {
+
+                        try {
+                            editConfigurationController.edit(config);
+                            communicationsController.saveKnownIpsList();
+                        } catch (IOException e) {
+                            System.out.println("Couldn't save config file. :(");
+                        }
+
+                        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+                        alert.setTitle("Edit Configurations");
+                        alert.setHeaderText("Need to restart for the changes to take place.");
+                        alert.setContentText("Do you wish to restart?\n(If not the changes will take place the next time you start the app.)");
+                        Optional<ButtonType> confirm = alert.showAndWait();
+                        if (confirm.get() == ButtonType.OK) {
+                            try {
+                                restart();
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    }
+                });
+                veil.setVisible(false);
             }
         });
         MenuItem exitItem = new MenuItem("Exit");
@@ -614,16 +646,11 @@ public class P2PFileShareApp extends javafx.application.Application {
                 communicationsController.downloadFile(filename, newFile);
                 downloadTableView.setData();
                 downloadTableView.refresh();
-                Thread.sleep(2 * 1000); // So we can see the dialog if download is to fast ;) FIXME
-            } catch (IOException e) {
+                Thread.sleep(2 * 1000); // So we can see the dialog if download is to fast ;)
+            } catch (Exception e) {
                 e.printStackTrace(); // FIXME : Add option pane failed download
-
+                System.out.println("ERRRORORORORORO~~~~~~~~~~~~~~~~~~~~~~");
                 return -1;
-            } catch (IllegalArgumentException e) {
-                e.printStackTrace(); // FIXME : Add option pane file not available
-
-            } catch (InterruptedException e) {
-                e.printStackTrace();
             }
 
             veil.setVisible(false);
@@ -752,8 +779,14 @@ public class P2PFileShareApp extends javafx.application.Application {
 
         }
 
-        Runtime.getRuntime().exec("java -jar " + decodedPath);
-        System.exit(0);
+        if (OsUtils.isWindows()) {
+            decodedPath = decodedPath.substring(1);
+        }
+
+        String command = "java -jar " + decodedPath;
+
+        Runtime.getRuntime().exec(command);
+        Platform.exit();
     }
 
     @Override

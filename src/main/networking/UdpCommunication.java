@@ -57,6 +57,11 @@ public class UdpCommunication {
                 new UdpSender(), SEND_LIST_DELAY * 1000, Application.settings().getBroadcastTimeInterval() * 1000);
     }
 
+    public void stop() {
+
+        udpSocket.close();
+    }
+
     private void receiverServer() throws IOException {
 
         byte[] data = new byte[Constants.PAYLOAD_SIZE];
@@ -139,7 +144,11 @@ public class UdpCommunication {
                     udpPacket.setData(data);
                     udpPacket.setLength(data.length);
                     // Send packet
-                    udpSocket.send(udpPacket);
+                    try {
+                        udpSocket.send(udpPacket);
+                    } catch (IOException e) {
+                        System.out.println("Couldn't send packet.");
+                    }
                 }
             }
             // FIXME : erase test
@@ -180,7 +189,7 @@ public class UdpCommunication {
 
             try {
                 receiverServer(); // Launch receiver server in a new thread
-            } catch (IOException e) {
+            } catch (Exception e) {
                 e.printStackTrace(); // FIXME : Treat exception
             }
         }
@@ -196,7 +205,7 @@ public class UdpCommunication {
 
             try {
                 sendBroadcast(); // Send filenames to share in broadcast
-            } catch (IOException e) {
+            } catch (Exception e) {
                 e.printStackTrace(); // FIXME : Treat exception
             }
         }
