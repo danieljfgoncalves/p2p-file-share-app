@@ -81,6 +81,7 @@ public class UdpCommunication {
         datagram is received (source IP address and source port number).
         */
         DatagramPacket udpPacket = new DatagramPacket(data, data.length);
+        //noinspection InfiniteLoopStatement
         while (true) {
 
             udpPacket.setData(data);
@@ -197,9 +198,9 @@ public class UdpCommunication {
      * @param address the address to add
      * @return true if added, false otherwise
      */
-    public boolean addAddress(InetAddress address) {
+    public void addAddress(InetAddress address) {
 
-        return addresses.add(address);
+        addresses.add(address);
     }
 
     /**

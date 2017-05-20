@@ -66,12 +66,12 @@ public class P2PFileShareApp extends javafx.application.Application {
 
     // Components
     private static Stage mainStage;
+    private final Region veil = new Region();
     private Desktop desktop;
     private RemoteFilenamesTableView remoteTableView;
     private DirectoryTableView sharedTableView;
     private DirectoryTableView downloadTableView;
     private DownloadingDialog wd = null;
-    private Region veil = new Region();
     private FileChooser openFileChooser;
     private FileChooser downloadFileChooser;
     private BooleanBinding shdTableSelectionBind;

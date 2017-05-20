@@ -11,7 +11,6 @@ import java.nio.ByteOrder;
 public final class ByteUtil {
 
     private static final int INTEGER_SIZE = Integer.SIZE / Byte.SIZE;
-    private static final int SHORT_SIZE = Short.SIZE / Byte.SIZE;
 
     /**
      * The caller references the ByteUtil using <tt>ByteUtil.EMPTY_STRING</tt>,

@@ -14,7 +14,7 @@ public class Application {
     /**
      * Obtain the application settings
      *
-     * @return
+     * @return the app settings
      */
     public static AppSettings settings() {
         return SETTINGS;

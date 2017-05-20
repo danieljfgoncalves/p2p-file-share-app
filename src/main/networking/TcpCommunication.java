@@ -58,6 +58,7 @@ public class TcpCommunication {
     private void tcpServer() throws IOException {
 
         System.out.println("Waiting for peers to connect (TCP)...");
+        //noinspection InfiniteLoopStatement
         while (true) {
             Socket connectionSocket = serverSocket.accept();
 
@@ -158,7 +159,7 @@ public class TcpCommunication {
                 // Request file's name & size to download
                 int filenameSize = income.readInt();
                 byte[] stringBytes = new byte[filenameSize];
-                income.read(stringBytes, 0, stringBytes.length);
+                income.readFully(stringBytes, 0, stringBytes.length);
                 String filename = new String(stringBytes);
                 System.out.println("Requested the file: " + filename);
                 // Get File by received filename

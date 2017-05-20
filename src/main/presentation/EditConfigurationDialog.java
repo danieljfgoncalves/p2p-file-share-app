@@ -138,7 +138,7 @@ public class EditConfigurationDialog extends Dialog<Map<String, String>> {
                 if (sendTime != null) {
                     if (sendTime > 0 && sendTime <= 120) {
                         if (!sendTime.equals(Application.settings().getBroadcastTimeInterval())) {
-                            result.put(AppSettings.FILE_REFRESH_TIME_KEY, sendTime.toString());
+                            result.put(AppSettings.BROADCAST_TIME_INTERVAL_KEY, sendTime.toString());
                         }
                     }
                 }

@@ -14,8 +14,8 @@ import java.util.Collections;
  */
 public class AddToListEventHandler implements EventHandler<ActionEvent> {
 
-    private ObservableList<String> aList;
-    private TextField aTextField;
+    private final ObservableList<String> aList;
+    private final TextField aTextField;
 
     public AddToListEventHandler(ObservableList<String> list, TextField textField) {
 

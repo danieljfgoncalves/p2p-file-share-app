@@ -116,14 +116,14 @@ public class RemoteFilename extends Observable {
      *
      * @return true if active, false otherwise
      */
-    public boolean isActive() {
+    boolean isInactive() {
         return this.active;
     }
 
     /**
      * Resets the filename refresh time limit
      */
-    public void refresh() {
+    void refresh() {
 
         if (futureTask != null) {
             cancel();
@@ -135,7 +135,7 @@ public class RemoteFilename extends Observable {
     /**
      * Activates the timeout limit
      */
-    public void activate() {
+    void activate() {
 
         if (futureTask == null) {
             futureTask = scheduler.schedule(
@@ -161,7 +161,7 @@ public class RemoteFilename extends Observable {
     /**
      * Shutdown the remote file timeout scheduler
      */
-    public void shutdown() {
+    private void shutdown() {
 
         cancel();
         scheduler.shutdownNow();
@@ -210,7 +210,7 @@ public class RemoteFilename extends Observable {
         /**
          * Creates timer task for the remote file
          *
-         * @param remoteFilename
+         * @param remoteFilename remote file name
          */
         private ChangeStateTimerTask(RemoteFilename remoteFilename) {
 

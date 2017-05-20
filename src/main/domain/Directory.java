@@ -75,9 +75,8 @@ public class Directory extends Observable {
      * Obtains the files in the directory (using the defined file filter)
      *
      * @return the files in the directory
-     * @throws IOException I/O error
      */
-    public File[] getFiles() throws IOException {
+    public File[] getFiles() {
 
         File folder = this.directory.toFile();
 
@@ -94,13 +93,13 @@ public class Directory extends Observable {
 
         File folder = this.directory.toFile();
         File[] files = folder.listFiles(this.fileFilter);
+        if (files != null) {
+            for (File file :
+                    files) {
 
-        for (File file :
-                files) {
-
-            if (file.getName().equalsIgnoreCase(filename)) return file;
+                if (file.getName().equalsIgnoreCase(filename)) return file;
+            }
         }
-
         return null;
     }
 
@@ -148,21 +147,23 @@ public class Directory extends Observable {
                     Logger.getLogger(Directory.class.getName()).log(Level.WARNING, "A watch service on a directory failed.", e);
                 }
 
-                for (WatchEvent<?> event : key.pollEvents()) {
-                    WatchEvent.Kind<?> kind = event.kind();
+                if (key != null) {
+                    for (WatchEvent<?> event : key.pollEvents()) {
+                        WatchEvent.Kind<?> kind = event.kind();
 
-                    @SuppressWarnings("unchecked")
-                    WatchEvent<Path> ev = (WatchEvent<Path>) event;
-                    Path fileName = ev.context();
+                        @SuppressWarnings("unchecked")
+                        WatchEvent<Path> ev = (WatchEvent<Path>) event;
+                        Path fileName = ev.context();
 
-                    System.out.println(kind.name() + ": " + directory.getFileName() + " -> " + fileName);
+                        System.out.println(kind.name() + ": " + directory.getFileName() + " -> " + fileName);
 
-                    // Notify Observers
-                    setChanged();
-                    notifyObservers();
+                        // Notify Observers
+                        setChanged();
+                        notifyObservers();
+                    }
                 }
 
-                boolean valid = key.reset();
+                boolean valid = key != null && key.reset();
                 if (!valid) {
                     break;
                 }

@@ -8,14 +8,10 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import util.ByteUtil;
 
-import javax.swing.*;
 import java.io.File;
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.Observable;
 import java.util.Observer;
-
-import static util.Constants.WARNING_PANE_TITLE;
 
 /**
  * Represents a filename item tableview.
@@ -48,19 +44,8 @@ public class DirectoryTableView extends TableView<File> implements Observer {
      */
     public void setData() {
 
-        try {
-            ObservableList<File> data = FXCollections.observableArrayList(Arrays.asList(dir.getFiles()));
-            setItems(data);
-        } catch (IOException e) {
-            // PopUp Warning
-            JOptionPane.showMessageDialog(
-                    null,
-                    "Failed to load " + dir.getDirectoryName() + " directory.",
-                    WARNING_PANE_TITLE,
-                    JOptionPane.WARNING_MESSAGE);
-            // Set empty list
-            setItems(FXCollections.observableArrayList());
-        }
+        ObservableList<File> data = FXCollections.observableArrayList(Arrays.asList(dir.getFiles()));
+        setItems(data);
     }
 
 

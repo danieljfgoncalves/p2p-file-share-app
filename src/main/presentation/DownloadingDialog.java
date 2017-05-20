@@ -41,7 +41,7 @@ public class DownloadingDialog<P> {
     /**
      * Placing a listener on this list allows to get notified BY the result when the task has finished.
      */
-    private ObservableList<Integer> resultNotificationList = FXCollections.observableArrayList();
+    private final ObservableList<Integer> resultNotificationList = FXCollections.observableArrayList();
     private Integer resultValue;
     private Task animationWorker;
     private Task<Integer> taskWorker;

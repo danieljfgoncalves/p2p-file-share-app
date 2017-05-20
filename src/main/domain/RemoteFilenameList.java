@@ -14,7 +14,7 @@ import java.util.Observer;
  */
 public class RemoteFilenameList implements Observer {
 
-    private ObservableList<RemoteFilename> list;
+    private final ObservableList<RemoteFilename> list;
 
     /**
      * Creates a remote file list manager
@@ -31,7 +31,7 @@ public class RemoteFilenameList implements Observer {
      */
     public boolean add(RemoteFilename item) {
 
-        if (!item.isActive()) {
+        if (item.isInactive()) {
             return false;
         }
         // If list already contains item refresh scheduler
@@ -55,15 +55,11 @@ public class RemoteFilenameList implements Observer {
      * @param collection the collection of remote files
      * @return true if all were added
      */
-    public boolean addAll(Collection<RemoteFilename> collection) {
-
-        boolean ret = true;
+    public void addAll(Collection<RemoteFilename> collection) {
         for (RemoteFilename filename :
                 collection) {
-            if (!add(filename)) ret = !ret;
+            add(filename);
         }
-
-        return ret;
     }
 
     /**
@@ -72,9 +68,9 @@ public class RemoteFilenameList implements Observer {
      * @param item the rmeote file to remove
      * @return true if removed, false otherwise
      */
-    public boolean remove(RemoteFilename item) {
+    public void remove(RemoteFilename item) {
 
-        return this.list.remove(item);
+        this.list.remove(item);
     }
 
     /**
@@ -94,7 +90,7 @@ public class RemoteFilenameList implements Observer {
             if (o instanceof RemoteFilename) {
 
                 RemoteFilename item = (RemoteFilename) o;
-                if (!item.isActive()) {
+                if (item.isInactive()) {
                     remove(item);
                 }
             }
