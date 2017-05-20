@@ -3,7 +3,6 @@ package tests.domain;
 import domain.RemoteFilename;
 import domain.RemoteFilenameList;
 import networking.RemoteFilenameListProtocol;
-import settings.Application;
 
 import java.io.File;
 import java.net.InetAddress;
@@ -27,9 +26,9 @@ public class RemoteFilenameListProtocolTest {
     @org.junit.Before
     public void setUp() throws Exception {
 
-        username = Application.settings().getUsername();
+        username = "user";
         addr = InetAddress.getByName("127.0.0.1");
-        tcpPort = 8888;
+        tcpPort = 32035;
 
         files = new File[5];
         files[0] = new File("/file1");

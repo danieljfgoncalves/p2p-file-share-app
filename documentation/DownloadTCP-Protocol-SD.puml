@@ -1,0 +1,13 @@
+@startuml
+Cliente -> Server: download Request
+Server --> Cliente: accept Request
+Server -> Server: next request
+note right: creates a new thread\nfor the connection
+Cliente -> ConnectionThread: \nsend file name length
+Cliente -> ConnectionThread: send file name
+ConnectionThread -> ConnectionThread: find file
+Cliente <- ConnectionThread: \nsend file size
+Cliente <- ConnectionThread: send file
+ConnectionThread -> ConnectionThread: close socket
+Cliente -> Cliente: close socket
+@enduml

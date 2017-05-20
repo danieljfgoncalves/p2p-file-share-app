@@ -1,0 +1,36 @@
+@startuml
+
+'http://plantuml.com/skinparam.html'
+skinparam handwritten true
+skinparam monochrome false
+skinparam defaultFontName FG Virgil
+skinparam shadowing false
+
+state Server {
+    [*] -> ACCEPT : start
+    ACCEPT -> ACCEPT : next\nconnection
+    ACCEPT --> [*] : app\nexit
+    ACCEPT ---> ConnectionThread : run
+}
+
+state ConnectionThread {
+    [*] -> FETCHING : receive filename\nlength &\nfilename
+    FETCHING -> SENDING : sending file size
+    FETCHING --> [*] : file not\nfound
+    SENDING -> UPLOADING : uploading\nfile
+    UPLOADING --> [*] : uploaded
+}
+
+state Client {
+    [*] --> REQUESTING : start
+    REQUESTING -> Server : request\nconnection
+    REQUESTING --> CONNECTED : connected
+    CONNECTED -> ConnectionThread : communicate
+    CONNECTED -> WAITING : send filename\nlength &\nfilename
+    CONNECTED --> [*] : lost connection
+    WAITING --> DOWNLOADING : receive file size
+    WAITING --> [*] : received -1 [error]
+    DOWNLOADING -> [*] : downloaded
+}
+
+@enduml

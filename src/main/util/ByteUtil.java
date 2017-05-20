@@ -53,7 +53,7 @@ public final class ByteUtil {
      */
     public static int bytesToInt(byte[] value) {
 
-        return ByteBuffer.wrap(value).order(ByteOrder.LITTLE_ENDIAN).getInt();
+        return ByteBuffer.wrap(value).order(ByteOrder.BIG_ENDIAN).getInt();
     }
 
     /**
@@ -64,7 +64,7 @@ public final class ByteUtil {
      */
     public static byte[] intToBytes(int value) {
 
-        return ByteBuffer.allocate(INTEGER_SIZE).order(ByteOrder.LITTLE_ENDIAN).putInt(value).array();
+        return ByteBuffer.allocate(INTEGER_SIZE).order(ByteOrder.BIG_ENDIAN).putInt(value).array();
     }
 
     /**

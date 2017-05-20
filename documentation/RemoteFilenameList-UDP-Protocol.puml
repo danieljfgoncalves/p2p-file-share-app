@@ -1,0 +1,26 @@
+@startuml
+
+'http://plantuml.com/skinparam.html'
+skinparam handwritten true
+skinparam monochrome false
+skinparam defaultFontName FG Virgil
+skinparam shadowing false
+
+
+
+state Server {
+  [*] ---> RECEIVING : start
+  RECEIVING --> DECODING : received\npacket
+  DECODING --> RECEIVING : parsed\npacket
+  DECODING --> IGNORING : packet\nerror
+  IGNORING --> RECEIVING : receive\nnext
+  RECEIVING -> [*] : app\nexit
+}
+
+state Sender {
+    [*] --> ENCODING : Timertask
+    ENCODING -> SENDING : parse\nlist
+    SENDING --> Server : send\npacket
+    SENDING -> [*] : finish
+}
+@enduml

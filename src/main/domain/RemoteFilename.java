@@ -20,10 +20,10 @@ import java.util.concurrent.TimeUnit;
  */
 public class RemoteFilename extends Observable {
 
+    private static final int THREAD_POOL_SIZE = 10;
     // JavaFX
     private final StringProperty filenameProperty;
     private final StringProperty usernameProperty;
-
     private final String filename;
     private final String username;
     private final InetAddress host;
@@ -53,7 +53,7 @@ public class RemoteFilename extends Observable {
         // active state;
         active = true;
         // Instantiate scheduler
-        scheduler = Executors.newScheduledThreadPool(10);
+        scheduler = Executors.newScheduledThreadPool(THREAD_POOL_SIZE);
         futureTask = null;
     }
 
