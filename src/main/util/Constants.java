@@ -3,7 +3,7 @@ package util;
 /**
  * Represents the common constants of the application.
  *
- * Created by danielGoncalves on 09/05/17.
+ * Created by 2DD - Group SNOW WHITE {1151452, 1151031, 1141570, 1151088}
  */
 public final class Constants {
 

@@ -13,9 +13,9 @@ import java.util.LinkedList;
 import java.util.List;
 
 /**
- * Represents a application protocol (version 1) to parse a datagram packet into a RemoteFilenameList.
+ * Represents a application protocol to parse a datagram packet into a RemoteFilenameList, and vice-versa.
  * <p>
- * Created by danielGoncalves on 10/05/17.
+ * Created by 2DD - Group SNOW WHITE {1151452, 1151031, 1141570, 1151088}
  */
 public final class RemoteFilenameListProtocol {
 
@@ -41,12 +41,12 @@ public final class RemoteFilenameListProtocol {
      */
     private RemoteFilenameListProtocol() {
         //this prevents even the native class from
-        //calling this ctor as well :
+        //calling this constructor as well :
         throw new AssertionError();
     }
 
     /**
-     * Parses a byte array and returns a list of filename items.
+     * Parses a byte array and returns a list of filename items according to application protocol.
      *
      * @param bytes       the data with the items
      * @param hostAddress the address that sent the data
@@ -144,6 +144,12 @@ public final class RemoteFilenameListProtocol {
         return packets;
     }
 
+    /**
+     * Obtains a list of filenames from an array of files.
+     *
+     * @param files the array of files
+     * @return a list of filenames from an array of files.
+     */
     private static LinkedList<String> getFilenames(File[] files) {
 
         LinkedList<String> filenames = new LinkedList<>();
@@ -155,6 +161,14 @@ public final class RemoteFilenameListProtocol {
         return filenames;
     }
 
+    /**
+     * Adds an array of bytes into another array of bytes
+     *
+     * @param toAdd     the array to add
+     * @param container the receiver array
+     * @param offset    the offset where to index the added array
+     * @return number of inserted bytes
+     */
     private static int addBytes(byte[] toAdd, byte[] container, int offset) {
 
         int i;
@@ -166,6 +180,12 @@ public final class RemoteFilenameListProtocol {
         return toAdd.length;
     }
 
+    /**
+     * Create the application protocol header bytes
+     *
+     * @param tcpPort the tcp port of the peer
+     * @return an array of bytes representing the header
+     */
     private static byte[] createDataHeader(Integer tcpPort) {
 
         String username = Application.settings().getUsername(); // Get username

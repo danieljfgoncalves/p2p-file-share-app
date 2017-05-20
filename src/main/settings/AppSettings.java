@@ -16,8 +16,6 @@ import java.util.logging.Logger;
  */
 public class AppSettings {
 
-    // TODO : Refactor code that needs settings
-
     // PROPERTY KEYS
     public final static String USERNAME_KEY = "username";
     public final static String SHD_DIR_KEY = "shd.directory";
@@ -45,9 +43,16 @@ public class AppSettings {
     private final static String IPS_DEFAULT = "";
     private final Properties applicationProperties = new Properties();
 
+    /**
+     * Loads the configurations
+     */
     AppSettings() {
         loadProperties();
     }
+
+    /**
+     * Obtain configurations
+     */
 
     private File getConfigFile() {
         return new File("config.properties");
@@ -134,7 +139,7 @@ public class AppSettings {
         return new Integer(this.applicationProperties.getProperty(MAX_UPLOADS_KEY, MAX_UPLOADS_DEFAULT.toString()));
     }
 
-    public List<InetAddress> getKnownAddreses() throws UnknownHostException {
+    public List<InetAddress> getKnownAddresses() throws UnknownHostException {
 
         List<InetAddress> addresses = new ArrayList<>();
 

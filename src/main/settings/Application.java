@@ -11,6 +11,11 @@ public class Application {
     private Application() {
     }
 
+    /**
+     * Obtain the application settings
+     *
+     * @return
+     */
     public static AppSettings settings() {
         return SETTINGS;
     }

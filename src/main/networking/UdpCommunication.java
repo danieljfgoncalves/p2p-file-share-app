@@ -10,6 +10,8 @@ import java.io.File;
 import java.io.IOException;
 import java.net.*;
 import java.util.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import static util.Constants.BROADCAST_STRING;
 import static util.Constants.SEND_LIST_DELAY;
@@ -17,7 +19,7 @@ import static util.Constants.SEND_LIST_DELAY;
 /**
  * Handles UDP Connection to obtain peers list of files to share & sends its own shared files
  * <p>
- * Created by danielGoncalves on 09/05/17.
+ * Created by 2DD - Group SNOW WHITE {1151452, 1151031, 1141570, 1151088}
  */
 public class UdpCommunication {
 
@@ -29,7 +31,16 @@ public class UdpCommunication {
     private final Timer sendingTimer;
     private final Set<InetAddress> addresses;
 
-    public UdpCommunication(DatagramSocket socket, Directory sharedDir, RemoteFilenameList filenamesSet, Integer tcpPort)
+    /**
+     * Creates an UDP Connection
+     *
+     * @param socket    the datagram socket
+     * @param sharedDir the shared directory
+     * @param filenames the filename list
+     * @param tcpPort   the peer's TCP port
+     * @throws SocketException Creating/Associating a socket error
+     */
+    public UdpCommunication(DatagramSocket socket, Directory sharedDir, RemoteFilenameList filenames, Integer tcpPort)
             throws SocketException {
 
         udpSocket = socket;
@@ -38,25 +49,13 @@ public class UdpCommunication {
         sendingTimer = new Timer();
         receiverThread = new Thread(new UdpReceiver());
         sharedDirectory = sharedDir;
-        filenames = filenamesSet;
+        this.filenames = filenames;
         addresses = new HashSet<>();
     }
 
-    public void loadKnownIps() throws UnknownHostException {
-        addresses.addAll(Application.settings().getKnownAddreses());
-    }
-
-    public List<String> getKnownIps() {
-        List<String> list = new ArrayList<>();
-
-        for (InetAddress address :
-                addresses) {
-            list.add(address.getHostAddress());
-        }
-
-        return list;
-    }
-
+    /**
+     * Start the UDP Server
+     */
     public void start() {
 
         // Start Receiver
@@ -67,11 +66,11 @@ public class UdpCommunication {
                 new UdpSender(), SEND_LIST_DELAY * 1000, Application.settings().getBroadcastTimeInterval() * 1000);
     }
 
-    public void stop() {
-
-        udpSocket.close();
-    }
-
+    /**
+     * Creates a UDP Server to listen for Datagram Packets
+     *
+     * @throws IOException I/O error
+     */
     private void receiverServer() throws IOException {
 
         byte[] data = new byte[Constants.PAYLOAD_SIZE];
@@ -95,7 +94,7 @@ public class UdpCommunication {
 
             if (!isLocalAddress(udpPacket.getAddress())) {
 
-                addresses.add(udpPacket.getAddress()); // FIXME
+                addresses.add(udpPacket.getAddress());
 
                 List<RemoteFilename> newItems = RemoteFilenameListProtocol.parsePacket(udpPacket.getData(), udpPacket.getAddress());
 
@@ -112,24 +111,12 @@ public class UdpCommunication {
         }
     }
 
-    private boolean isLocalAddress(InetAddress address) throws SocketException {
-
-        Enumeration<NetworkInterface> list = NetworkInterface.getNetworkInterfaces();
-        while (list.hasMoreElements()) {
-
-            NetworkInterface anInterface = list.nextElement();
-            Enumeration<InetAddress> addresses = anInterface.getInetAddresses();
-
-            while (addresses.hasMoreElements()) {
-
-                InetAddress inetAddress = addresses.nextElement();
-                if (address.equals(inetAddress)) return true;
-            }
-        }
-        return false;
-    }
-
-    private void sendBroadcast() throws IOException {
+    /**
+     * Sends the remote filenames list through broadcast and to any known IPv4 address by the app.
+     *
+     * @throws IOException I/O error
+     */
+    private void sendRemoteFiles() throws IOException {
 
         addresses.add(InetAddress.getByName(BROADCAST_STRING));
 
@@ -161,7 +148,7 @@ public class UdpCommunication {
                     }
                 }
             }
-            // FIXME : erase test
+
             System.out.printf("[Sent] <");
             for (File f :
                     files) {
@@ -171,12 +158,56 @@ public class UdpCommunication {
         }
     }
 
+    /**
+     * Checks if a address is a local address
+     *
+     * @param address the address to check
+     * @return true if it is local, false otherwise
+     * @throws SocketException Create/Associate Socket exception
+     */
+    private boolean isLocalAddress(InetAddress address) throws SocketException {
+
+        Enumeration<NetworkInterface> list = NetworkInterface.getNetworkInterfaces();
+        while (list.hasMoreElements()) {
+
+            NetworkInterface anInterface = list.nextElement();
+            Enumeration<InetAddress> addresses = anInterface.getInetAddresses();
+
+            while (addresses.hasMoreElements()) {
+
+                InetAddress inetAddress = addresses.nextElement();
+                if (address.equals(inetAddress)) return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Loads the known IPv4 addresses
+     *
+     * @throws UnknownHostException Unrecognized address error
+     */
+    public void loadKnownIps() throws UnknownHostException {
+        addresses.addAll(Application.settings().getKnownAddresses());
+    }
+
+    /**
+     * Adds an address to the known addresses list
+     *
+     * @param address the address to add
+     * @return true if added, false otherwise
+     */
     public boolean addAddress(InetAddress address) {
 
         return addresses.add(address);
     }
 
-    public String[] getKnownAddressList() {
+    /**
+     * Obtain known IPv4 addresses
+     *
+     * @return a string array of known addresses
+     */
+    public String[] getKnownIps() {
 
         List<String> tmp = new ArrayList<>();
         for (InetAddress addr :
@@ -200,7 +231,7 @@ public class UdpCommunication {
             try {
                 receiverServer(); // Launch receiver server in a new thread
             } catch (Exception e) {
-                e.printStackTrace(); // FIXME : Treat exception
+                Logger.getLogger(Directory.class.getName()).log(Level.SEVERE, "UDP Server failed.", e);
             }
         }
     }
@@ -214,9 +245,9 @@ public class UdpCommunication {
         public void run() {
 
             try {
-                sendBroadcast(); // Send filenames to share in broadcast
+                sendRemoteFiles(); // Send filenames to share in broadcast
             } catch (Exception e) {
-                e.printStackTrace(); // FIXME : Treat exception
+                Logger.getLogger(Directory.class.getName()).log(Level.SEVERE, "UDP Broadcast Sender failed.", e);
             }
         }
     }

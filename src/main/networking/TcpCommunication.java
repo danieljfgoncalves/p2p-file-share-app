@@ -10,11 +10,13 @@ import java.net.Socket;
 import java.nio.file.Files;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Handles TCP Connections to download a file from peers list of files to share.
  * <p>
- * Created by danielGoncalves on 11/05/17.
+ * Created by 2DD - Group SNOW WHITE {1151452, 1151031, 1141570, 1151088}
  */
 public class TcpCommunication {
 
@@ -24,6 +26,13 @@ public class TcpCommunication {
     private final Thread serverThread;
     private final ExecutorService clientTaskPool;
 
+    /**
+     * Creates a TCP Communication.
+     *
+     * @param tcpSocket         the TCP server socket
+     * @param sharedDirectory   the shared directory
+     * @param downloadDirectory the download directory
+     */
     public TcpCommunication(ServerSocket tcpSocket, Directory sharedDirectory, Directory downloadDirectory) {
 
         sharedDir = sharedDirectory;
@@ -33,15 +42,19 @@ public class TcpCommunication {
         clientTaskPool = Executors.newFixedThreadPool(Application.settings().getMaxUploads());
     }
 
+    /**
+     * Starts the TCP server
+     */
     public void start() {
 
         serverThread.start(); // Start tcp server
     }
 
-    public void stop() throws IOException {
-        serverSocket.close();
-    }
-
+    /**
+     * Creates a TCP Server.
+     *
+     * @throws IOException I/O error
+     */
     private void tcpServer() throws IOException {
 
         System.out.println("Waiting for peers to connect (TCP)...");
@@ -52,6 +65,16 @@ public class TcpCommunication {
         }
     }
 
+    /**
+     * Requests a download to the peer's server.
+     *
+     * @param filename the resquested file's name
+     * @param host     the peer's host IPv4 Address
+     * @param tcpPort  the peer's TCP Port
+     * @param toFile   the File object representing the location of the download file (if null get location by default)
+     * @throws IOException              I/O error
+     * @throws IllegalArgumentException Unavailable file error
+     */
     public void download(String filename, InetAddress host, int tcpPort, File toFile) throws IOException, IllegalArgumentException {
 
         File downloadedFile = (toFile == null) ? new File(downloadDir.getAbsoluteDirPath(), filename) : toFile;
@@ -91,7 +114,7 @@ public class TcpCommunication {
     }
 
     /**
-     * TCP Server
+     * Thread running the TCP Server
      */
     private class TcpServer implements Runnable {
 
@@ -102,14 +125,14 @@ public class TcpCommunication {
                 tcpServer(); // Launch tcp server in a new thread
             } catch (Exception e) {
 
-                e.printStackTrace(); // FIXME: Treat exceptions
+                Logger.getLogger(Directory.class.getName()).log(Level.SEVERE, "TCP server failed.", e);
             }
 
         }
     }
 
     /**
-     * TCP connection task
+     * TCP client connection task
      */
     private class TcpConnection implements Runnable {
 
@@ -162,17 +185,16 @@ public class TcpCommunication {
                 System.out.println("Uploaded the file: " + filename + " to: " + connectionSocket.getInetAddress().getHostAddress());
 
             } catch (IOException | IllegalArgumentException e) {
-                // e.printStackTrace(); FIXME
+                Logger.getLogger(Directory.class.getName()).log(Level.WARNING, "TCP Connection failed.", e);
             } finally {
                 try {
-
                     if (fis != null) fis.close();
                     if (bis != null) bis.close();
                     if (outcome != null) outcome.close();
                     if (income != null) income.close();
                     connectionSocket.close();
                 } catch (IOException e) {
-                    e.printStackTrace(); // FIXME
+                    Logger.getLogger(Directory.class.getName()).log(Level.WARNING, "Closing streams failed.", e);
                 }
             }
         }

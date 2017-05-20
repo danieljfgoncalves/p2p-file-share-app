@@ -5,7 +5,7 @@ import static settings.AppSettings.DEFAULT_SEPARATOR;
 /**
  * Util class to manipulate strings.
  * <p>
- * Created by danielGoncalves on 11/05/17.
+ * Created by 2DD - Group SNOW WHITE {1151452, 1151031, 1141570, 1151088}
  */
 public final class StringUtil {
 
@@ -15,15 +15,21 @@ public final class StringUtil {
         throw new AssertionError();
     }
 
+    /**
+     * Converts an array of strings to a comma separated string
+     *
+     * @param array the array to convert
+     * @return a comma separated string
+     */
     public static String arrayToString(String[] array) {
 
-        String tmp = "";
+        StringBuilder tmp = new StringBuilder();
         for (String ext :
                 array) {
-            tmp += ext.concat(DEFAULT_SEPARATOR);
+            tmp.append(ext.concat(DEFAULT_SEPARATOR));
         }
-        tmp = tmp.substring(0, tmp.length() - 1);
+        tmp = new StringBuilder(tmp.substring(0, tmp.length() - 1));
 
-        return tmp;
+        return tmp.toString();
     }
 }

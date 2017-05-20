@@ -6,7 +6,7 @@ import java.nio.ByteOrder;
 /**
  * Util class to convert bytes.
  * <p>
- * Created by danielGoncalves on 11/05/17.
+ * Created by 2DD - Group SNOW WHITE {1151452, 1151031, 1141570, 1151088}
  */
 public final class ByteUtil {
 
@@ -24,34 +24,57 @@ public final class ByteUtil {
         throw new AssertionError();
     }
 
+    /**
+     * Converts a byte to an int
+     *
+     * @param value the byte to convert
+     * @return the converted int
+     */
     public static int byteToInt(byte value) {
 
         return (new Byte(value)).intValue();
     }
 
+    /**
+     * Converts an int to a byte
+     *
+     * @param value the int to convert
+     * @return the converted byte
+     */
     public static byte intToByte(int value) {
 
         return (new Integer(value)).byteValue();
     }
 
+    /**
+     * Converts an array of bytes to an int
+     *
+     * @param value the array of bytes
+     * @return the converted int
+     */
     public static int bytesToInt(byte[] value) {
 
         return ByteBuffer.wrap(value).order(ByteOrder.LITTLE_ENDIAN).getInt();
     }
 
+    /**
+     * Converts an int to an array of bytes
+     *
+     * @param value the int to converted
+     * @return the converted byte array
+     */
     public static byte[] intToBytes(int value) {
 
         return ByteBuffer.allocate(INTEGER_SIZE).order(ByteOrder.LITTLE_ENDIAN).putInt(value).array();
     }
 
-    public static short bytesToShort(byte[] value) {
-        return ByteBuffer.wrap(value).order(ByteOrder.LITTLE_ENDIAN).getShort();
-    }
-
-    public static byte[] shortToBytes(short value) {
-        return ByteBuffer.allocate(SHORT_SIZE).order(ByteOrder.LITTLE_ENDIAN).putShort(value).array();
-    }
-
+    /**
+     * Creates a string with a human readable scale to represent a size in bytes (ex. 5 MB or 6 kB)
+     *
+     * @param bytes the size in bytes to convert
+     * @param si    the SI unit to use (Standard: 1000 bytes vs Binary 1024)
+     * @return the string representation of the size
+     */
     public static String readableByteCount(long bytes, boolean si) {
 
         int unit = si ? 1000 : 1024;

@@ -11,7 +11,6 @@ import util.StringUtil;
 
 import java.io.*;
 import java.net.*;
-import java.util.List;
 import java.util.Properties;
 
 /**
@@ -111,7 +110,7 @@ public class CommunicationsController {
         InputStream input = new FileInputStream(config);
         properties.load(input);
         input.close();
-        properties.replace(AppSettings.KNOWN_IPS_KEY, StringUtil.arrayToString(udp.getKnownAddressList()));
+        properties.replace(AppSettings.KNOWN_IPS_KEY, StringUtil.arrayToString(udp.getKnownIps()));
         FileOutputStream output = new FileOutputStream(config);
         properties.store(output, "Update known ips.");
         output.close();
@@ -122,7 +121,7 @@ public class CommunicationsController {
      *
      * @return list of known IPv4 addresses
      */
-    public List<String> getKnownIps() {
+    public String[] getKnownIps() {
         return udp.getKnownIps();
     }
 }
