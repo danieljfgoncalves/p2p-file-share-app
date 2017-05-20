@@ -37,16 +37,20 @@ public class DownloadingDialog<P> {
     private final Scene scene = new Scene(root, 330, 120, Color.WHITE);
     private final BorderPane mainPane = new BorderPane();
     private final VBox vbox = new VBox();
+
     /**
      * Placing a listener on this list allows to get notified BY the result when the task has finished.
      */
-    public ObservableList<Integer> resultNotificationList = FXCollections.observableArrayList();
-    public Integer resultValue;
+    private ObservableList<Integer> resultNotificationList = FXCollections.observableArrayList();
+    private Integer resultValue;
     private Task animationWorker;
     private Task<Integer> taskWorker;
 
     /**
+     * Creates a downloading dialog
      *
+     * @param owner the windows that owns this dialog
+     * @param label the label of the file downloading
      */
     public DownloadingDialog(Window owner, String label) {
         dialog.initModality(Modality.WINDOW_MODAL);
@@ -57,7 +61,9 @@ public class DownloadingDialog<P> {
     }
 
     /**
+     * Adds the task ended notification
      *
+     * @param c the consumer
      */
     public void addTaskEndNotification(Consumer<Integer> c) {
         resultNotificationList.addListener((ListChangeListener<? super Integer>) n -> {
@@ -67,11 +73,16 @@ public class DownloadingDialog<P> {
     }
 
     /**
+     * Executes the task
      *
+     * @param parameter a parameter
+     * @param func the function to execute
      */
+    @SuppressWarnings("SameParameterValue")
     public void exec(P parameter, ToIntFunction func) {
         setupDialog();
         setupAnimationThread();
+        //noinspection unchecked
         setupWorkerThread(parameter, func);
     }
 
@@ -157,12 +168,4 @@ public class DownloadingDialog<P> {
 
         new Thread(taskWorker).start();
     }
-
-    /**
-     * For those that like beans :)
-     */
-    public Integer getResultValue() {
-        return resultValue;
-    }
-
 }

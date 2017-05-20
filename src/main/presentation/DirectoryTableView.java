@@ -2,13 +2,10 @@ package presentation;
 
 import domain.Directory;
 import javafx.beans.property.SimpleStringProperty;
-import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableColumn.CellDataFeatures;
 import javafx.scene.control.TableView;
-import javafx.util.Callback;
 import util.ByteUtil;
 
 import javax.swing.*;
@@ -23,19 +20,17 @@ import static util.Constants.WARNING_PANE_TITLE;
 /**
  * Represents a filename item tableview.
  * <p>
- * Created by danielGoncalves on 13/05/17.
+ * Created by 2DD - Group SNOW WHITE {1151452, 1151031, 1141570, 1151088}
  */
 public class DirectoryTableView extends TableView<File> implements Observer {
 
-
-    // FIXME: Fix if not needed
     private final Directory dir;
 
-    private ObservableList<File> data;
-
-    private TableColumn<File, String> nameColumn;
-    private TableColumn<File, String> sizeColumn;
-
+    /**
+     * Create a directory table view
+     *
+     * @param directory the directory to list
+     */
     public DirectoryTableView(Directory directory) {
 
         dir = directory;
@@ -48,10 +43,13 @@ public class DirectoryTableView extends TableView<File> implements Observer {
         createColumns();
     }
 
+    /**
+     * Sets the table data
+     */
     public void setData() {
 
         try {
-            data = FXCollections.observableArrayList(Arrays.asList(dir.getFiles()));
+            ObservableList<File> data = FXCollections.observableArrayList(Arrays.asList(dir.getFiles()));
             setItems(data);
         } catch (IOException e) {
             // PopUp Warning
@@ -67,30 +65,17 @@ public class DirectoryTableView extends TableView<File> implements Observer {
 
 
     @SuppressWarnings("unchecked")
+    /*
+      Creates the table columns
+     */
     private void createColumns() {
 
-        nameColumn = new TableColumn<>("File");
-        nameColumn.setCellValueFactory(new Callback<CellDataFeatures<File, String>, ObservableValue<String>>() {
-            @Override
-            public ObservableValue<String> call(CellDataFeatures<File, String> f) {
-
-                // f.getValue() returns the RemoteFilename instance for a particular TableView row
-
-                return new SimpleStringProperty(f.getValue().getName());
-            }
-        });
+        TableColumn<File, String> nameColumn = new TableColumn<>("File");
+        nameColumn.setCellValueFactory(f -> new SimpleStringProperty(f.getValue().getName()));
         nameColumn.setMinWidth(200);
 
-        sizeColumn = new TableColumn<>("Size");
-        sizeColumn.setCellValueFactory(new Callback<CellDataFeatures<File, String>, ObservableValue<String>>() {
-            @Override
-            public ObservableValue<String> call(CellDataFeatures<File, String> f) {
-
-                // f.getValue() returns the RemoteFilename instance for a particular TableView row
-
-                return new SimpleStringProperty(ByteUtil.readableByteCount(f.getValue().length(), true));
-            }
-        });
+        TableColumn<File, String> sizeColumn = new TableColumn<>("Size");
+        sizeColumn.setCellValueFactory(f -> new SimpleStringProperty(ByteUtil.readableByteCount(f.getValue().length(), true)));
         sizeColumn.setMinWidth(50);
 
         setMinWidth(nameColumn.getMinWidth() + sizeColumn.getMinWidth());

@@ -17,6 +17,7 @@ public final class Constants {
     /**** EXIT STATUS ****/
     public static final int EXIT_SUCCESS = 0;
     public static final int SOCKET_FAILED = -1;
+    public static final int WATCH_DIR_FAILED = -2;
 
     /**
      * The caller references the constants using <tt>Consts.EMPTY_STRING</tt>,

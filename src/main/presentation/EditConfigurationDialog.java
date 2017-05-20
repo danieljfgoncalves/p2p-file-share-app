@@ -4,8 +4,6 @@ import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanBinding;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
@@ -27,7 +25,7 @@ import java.util.function.UnaryOperator;
 /**
  * Represents a dialog to edit configurations.
  * <p>
- * Created by danielGoncalves on 18/05/17.
+ * Created by 2DD - Group SNOW WHITE {1151452, 1151031, 1141570, 1151088}
  */
 public class EditConfigurationDialog extends Dialog<Map<String, String>> {
 
@@ -44,7 +42,11 @@ public class EditConfigurationDialog extends Dialog<Map<String, String>> {
     private TextField textfieldUsername;
     private ListView<String> extsListView;
 
-
+    /**
+     * Creates an edit configuration dialog
+     *
+     * @param owner the window that owns this dialog
+     */
     public EditConfigurationDialog(Window owner) {
         initOwner(owner);
         initModality(Modality.WINDOW_MODAL);
@@ -55,7 +57,7 @@ public class EditConfigurationDialog extends Dialog<Map<String, String>> {
         root.setVgap(15);
         root.setHgap(15);
 
-        root.addRow(0, createFoldersPane(), createFileExtsPane());
+        root.addRow(0, createInfoPane(), createFileExtsPane());
         root.add(createNetworkPane(), 0, 1, 2, 1);
 
         getDialogPane().setContent(root);
@@ -67,7 +69,7 @@ public class EditConfigurationDialog extends Dialog<Map<String, String>> {
         setResultConverter(dialogButton -> {
             if (dialogButton == addButtonType) {
 
-                Map<String, String> result = new HashMap<String, String>();
+                Map<String, String> result = new HashMap<>();
 
                 String username = textfieldUsername.getText().trim().toLowerCase();
                 if (!(username.isEmpty() || username.equalsIgnoreCase(Application.settings().getUsername()))) {
@@ -156,6 +158,11 @@ public class EditConfigurationDialog extends Dialog<Map<String, String>> {
         });
     }
 
+    /**
+     * Creates a pane with the network configurations
+     *
+     * @return a pane with the network configurations
+     */
     private Pane createNetworkPane() {
 
         Label labelTcp = new Label("TCP Port: ");
@@ -174,8 +181,6 @@ public class EditConfigurationDialog extends Dialog<Map<String, String>> {
         maxUpSpinner = createSpinner(1, 20, Application.settings().getMaxUploads());
         refreshSpinner = createSpinner(1, 120, Application.settings().getFileRefreshTime());
         sendSpinner = createSpinner(1, 120, Application.settings().getBroadcastTimeInterval());
-
-        // TODO Check Refresh bigger than send
 
         GridPane grid = new GridPane();
         Label title = new Label("Network Configuration");
@@ -201,7 +206,12 @@ public class EditConfigurationDialog extends Dialog<Map<String, String>> {
         return grid;
     }
 
-    private Pane createFoldersPane() {
+    /**
+     * Creates a pane with the information configurations
+     *
+     * @return a pane with the information configurations
+     */
+    private Pane createInfoPane() {
 
         Label title = new Label("Info Configuration");
         title.setStyle("-fx-font: bold 16 verdana;");
@@ -227,30 +237,96 @@ public class EditConfigurationDialog extends Dialog<Map<String, String>> {
         return grid;
     }
 
+    /**
+     * Creates a pane with the file extensions selector
+     *
+     * @return a pane with the file extensions selector
+     */
+    private Pane createFileExtsPane() {
+
+        ObservableList<String> items = FXCollections.observableArrayList(Application.settings().getFileExtensions());
+        Collections.sort(items);
+        extsListView = new ListView<>(items);
+        extsListView.setPrefSize(70, 150);
+        extsListView.getSelectionModel().setSelectionMode(
+                SelectionMode.MULTIPLE);
+
+        TextField extTxtfield = new TextField();
+        String regex = "[a-zA-Z0-9\\-]+";
+        final UnaryOperator<TextFormatter.Change> txtFilter = c -> {
+
+            String txt = c.getControlNewText();
+            if (txt.matches(regex) || txt.isEmpty()) {
+                return c;
+            } else {
+                return null;
+            }
+        };
+        extTxtfield.setTextFormatter(new TextFormatter<>(txtFilter));
+
+        Image imageAdd = new Image(this.getClass().getClassLoader().getResourceAsStream("add.png"));
+        Button addBtn = new Button();
+        addBtn.setGraphic(new ImageView(imageAdd));
+        addBtn.setOnAction(new AddToListEventHandler(items, extTxtfield));
+        BooleanBinding binding = Bindings.isEmpty(extsListView.getSelectionModel().getSelectedItems());
+        Image imageRemove = new Image(this.getClass().getClassLoader().getResourceAsStream("remove.png"));
+        Button removeBtn = new Button();
+        removeBtn.setGraphic(new ImageView(imageRemove));
+        removeBtn.disableProperty().bind(binding);
+        removeBtn.setOnAction(event -> {
+            items.removeAll(extsListView.getSelectionModel().getSelectedItems());
+            Collections.sort(items);
+        });
+        HBox buttonBox = new HBox(extTxtfield, addBtn, removeBtn);
+        buttonBox.setAlignment(Pos.BASELINE_CENTER);
+
+        GridPane grid = new GridPane();
+        Label title = new Label("File Extensions");
+        title.setStyle("-fx-font: bold 16 verdana;");
+        title.setPadding(new Insets(10, 0, 10, 0));
+        grid.setVgap(10);
+        grid.setPadding(new Insets(0, 20, 20, 20));
+        grid.setBorder(new Border(new BorderStroke(Color.GRAY, BorderStrokeStyle.SOLID, CornerRadii.EMPTY, new BorderWidths(1))));
+
+        grid.add(title, 0, 0, 1, 1);
+        grid.add(extsListView, 0, 1, 1, 6);
+        grid.add(buttonBox, 0, 7, 1, 1);
+
+        return grid;
+    }
+
+    /**
+     * Creates a directory chooser selector
+     *
+     * @param textField the textfield related to the selector
+     * @return a directory chooser selector pane
+     */
     private Pane createDirectoryChooser(TextField textField) {
 
         textField.setMinWidth(MIN_WIDTH_TXTFDS);
 
         Button btnOpenDirectoryChooser = new Button();
         btnOpenDirectoryChooser.setText("...");
-        btnOpenDirectoryChooser.setOnAction(new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent event) {
-                DirectoryChooser directoryChooser = new DirectoryChooser();
-                File selectedDirectory =
-                        directoryChooser.showDialog(getOwner());
+        btnOpenDirectoryChooser.setOnAction(event -> {
+            DirectoryChooser directoryChooser = new DirectoryChooser();
+            File selectedDirectory =
+                    directoryChooser.showDialog(getOwner());
 
-                if (selectedDirectory != null && selectedDirectory.isDirectory()) {
-                    textField.setText(selectedDirectory.getAbsolutePath());
-                }
+            if (selectedDirectory != null && selectedDirectory.isDirectory()) {
+                textField.setText(selectedDirectory.getAbsolutePath());
             }
         });
 
-        HBox box = new HBox(0, textField, btnOpenDirectoryChooser);
-
-        return box;
+        return new HBox(0, textField, btnOpenDirectoryChooser);
     }
 
+    /**
+     * Creates a radio button group
+     *
+     * @param group        the group to associate
+     * @param initialValue the initial value
+     * @return a pane with the toggle group
+     */
     private Pane createToggleSelection(ToggleGroup group, int initialValue) {
 
         RadioButton rbDynamic = new RadioButton("Dynamic");
@@ -280,81 +356,23 @@ public class EditConfigurationDialog extends Dialog<Map<String, String>> {
         return root;
     }
 
+    /**
+     * Creates an integer spinner
+     *
+     * @param min          minimum value
+     * @param max          maximum value
+     * @param initialValue initial value
+     * @return the spinner
+     */
     private Spinner<Integer> createSpinner(int min, int max, int initialValue) {
 
-        Spinner<Integer> spinner = new Spinner<Integer>();
+        Spinner<Integer> spinner = new Spinner<>();
         // Editable.
         spinner.setEditable(true);
         // Value Factory
-        SpinnerValueFactory valueFactory = new SpinnerValueFactory.IntegerSpinnerValueFactory(min, max, initialValue);
+        SpinnerValueFactory<Integer> valueFactory = new SpinnerValueFactory.IntegerSpinnerValueFactory(min, max, initialValue);
         spinner.setValueFactory(valueFactory);
 
         return spinner;
-    }
-
-    private Pane createFileExtsPane() {
-
-        ObservableList<String> items = FXCollections.observableArrayList(Application.settings().getFileExtensions());
-        Collections.sort(items);
-        extsListView = new ListView<>(items);
-        extsListView.setPrefSize(70, 150);
-        extsListView.getSelectionModel().setSelectionMode(
-                SelectionMode.MULTIPLE);
-
-        TextField extTxtfield = new TextField();
-        String regex = "[a-zA-Z0-9\\-]+";
-        final UnaryOperator<TextFormatter.Change> txtFilter = c -> {
-
-            String txt = c.getControlNewText();
-            if (txt.matches(regex) || txt.isEmpty()) {
-                return c;
-            } else {
-                return null;
-            }
-        };
-        extTxtfield.setTextFormatter(new TextFormatter<>(txtFilter));
-
-        Image imageAdd = new Image(this.getClass().getClassLoader().getResourceAsStream("add.png"));
-        Button addBtn = new Button();
-        addBtn.setGraphic(new ImageView(imageAdd));
-        addBtn.setOnAction(new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent event) {
-                String extension = extTxtfield.getText().trim().toLowerCase();
-                extTxtfield.setText("");
-                if (!extension.isEmpty()) {
-                    items.add(extension);
-                    Collections.sort(items);
-                }
-            }
-        });
-        BooleanBinding binding = Bindings.isEmpty(extsListView.getSelectionModel().getSelectedItems());
-        Image imageRemove = new Image(this.getClass().getClassLoader().getResourceAsStream("remove.png"));
-        Button removeBtn = new Button();
-        removeBtn.setGraphic(new ImageView(imageRemove));
-        removeBtn.disableProperty().bind(binding);
-        removeBtn.setOnAction(new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent event) {
-                items.removeAll(extsListView.getSelectionModel().getSelectedItems());
-                Collections.sort(items);
-            }
-        });
-        HBox buttonBox = new HBox(extTxtfield, addBtn, removeBtn);
-        buttonBox.setAlignment(Pos.BASELINE_CENTER);
-
-        GridPane grid = new GridPane();
-        Label title = new Label("File Extensions");
-        title.setStyle("-fx-font: bold 16 verdana;");
-        title.setPadding(new Insets(10, 0, 10, 0));
-        grid.setVgap(10);
-        grid.setPadding(new Insets(0, 20, 20, 20));
-        grid.setBorder(new Border(new BorderStroke(Color.GRAY, BorderStrokeStyle.SOLID, CornerRadii.EMPTY, new BorderWidths(1))));
-
-        grid.add(title, 0, 0, 1, 1);
-        grid.add(extsListView, 0, 1, 1, 6);
-        grid.add(buttonBox, 0, 7, 1, 1);
-
-        return grid;
     }
 }
