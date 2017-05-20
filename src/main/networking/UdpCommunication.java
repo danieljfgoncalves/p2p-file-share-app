@@ -1,9 +1,8 @@
 package networking;
 
 import domain.Directory;
-import domain.FilenameItem;
-import domain.FilenameItemList;
-import domain.FilenameSetProtocol;
+import domain.RemoteFilename;
+import domain.RemoteFilenameList;
 import settings.Application;
 import util.Constants;
 
@@ -25,12 +24,12 @@ public class UdpCommunication {
     private final DatagramSocket udpSocket;
     private final Integer tcpPort;
     private final Thread receiverThread;
-    private final FilenameItemList filenames;
+    private final RemoteFilenameList filenames;
     private final Directory sharedDirectory;
     private final Timer sendingTimer;
     private final Set<InetAddress> addresses;
 
-    public UdpCommunication(DatagramSocket socket, Directory sharedDir, FilenameItemList filenamesSet, Integer tcpPort)
+    public UdpCommunication(DatagramSocket socket, Directory sharedDir, RemoteFilenameList filenamesSet, Integer tcpPort)
             throws SocketException {
 
         udpSocket = socket;
@@ -98,11 +97,11 @@ public class UdpCommunication {
 
                 addresses.add(udpPacket.getAddress()); // FIXME
 
-                List<FilenameItem> newItems = FilenameSetProtocol.parsePacket(udpPacket.getData(), udpPacket.getAddress());
+                List<RemoteFilename> newItems = RemoteFilenameListProtocol.parsePacket(udpPacket.getData(), udpPacket.getAddress());
 
                 if (!newItems.isEmpty()) {
                     System.out.printf("[Received] <");
-                    for (FilenameItem f :
+                    for (RemoteFilename f :
                             newItems) {
                         System.out.printf(" %s;", f.getFilename());
                     }
@@ -138,7 +137,7 @@ public class UdpCommunication {
 
         if (files.length > 0) { // If no files to send ignore
 
-            LinkedList<byte[]> dataList = new LinkedList<>(FilenameSetProtocol.parseFileList(files, this.tcpPort));
+            LinkedList<byte[]> dataList = new LinkedList<>(RemoteFilenameListProtocol.parseFileList(files, this.tcpPort));
 
             List<DatagramPacket> packets = new ArrayList<>();
             for (InetAddress address :

@@ -1,6 +1,6 @@
 package presentation;
 
-import domain.FilenameItem;
+import domain.RemoteFilename;
 import javafx.collections.ObservableList;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
@@ -10,15 +10,15 @@ import javafx.scene.control.TableView;
  * <p>
  * Created by danielGoncalves on 13/05/17.
  */
-public class FilenameItemTableViewUI extends TableView<FilenameItem> {
+public class RemoteFilenamesTableView extends TableView<RemoteFilename> {
 
 
     // FIXME: Fix if not needed
-    private final ObservableList<FilenameItem> data;
-    private TableColumn<FilenameItem, String> fileColumn;
-    private TableColumn<FilenameItem, String> usernameColumn;
+    private final ObservableList<RemoteFilename> data;
+    private TableColumn<RemoteFilename, String> fileColumn;
+    private TableColumn<RemoteFilename, String> usernameColumn;
 
-    public FilenameItemTableViewUI(ObservableList<FilenameItem> set) {
+    public RemoteFilenamesTableView(ObservableList<RemoteFilename> set) {
 
         data = set;
 

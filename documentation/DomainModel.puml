@@ -1,41 +1,87 @@
 @startuml
+
+'http://plantuml.com/skinparam.html'
+skinparam handwritten true
+skinparam monochrome false
+skinparam defaultFontName FG Virgil
+skinparam shadowing false
+
 title P2P-FileShare
 
-package "utils" {
-    class Constants
+package "presentation" {
+
+    class DirectoryTableView
+    class DownloadingDialog
+    class EditConfigurationDialog
+    class RemoteFilenamesTableView
+    class P2PFileShareApp {
+
+        + {static} main : void
+    }
 }
 
-package "udp" {
+package "application" {
+    class ManageSharedFilesController
+    class CommunicationsController
+    class EditConfigurationsController
+}
+
+package "networking" {
 
     class UdpCommunication
-    class FilenameSetProtocol
-}
-
-package "tcp" {
-
     class TcpCommunication
+    class RemoteFilenameListProtocol
 }
 
 package "domain" {
 
-    class FilenameItem implements Observable {
-
+    class RemoteFilename {
         filename : String
         username : String
         address : InetAddress
         tcpPort : Integer
         active : Boolean
 
+        +activate()
+        +refresh()
         -deactivate()
-        +isActive()
+        +notifyObservers()
     }
-    class FileNameItemSet
-    class WatchedDirectory
+    class RemoteFilenameList {
+        list : ObservableList
+        +update()
+    }
+    class Directory {
+        directory : Path
+        filter : FileFilter
+        watcher : WatchService
+        +getFiles() : File[]
+    }
 }
+
+package "util" {
+    class Constants
+    class ByteUtil
+    class OSUtil
+    class StringUtil
+}
+
+application .> domain
+application ...> networking
+networking ...> domain
+presentation ...> application
+
+networking ..> util
+domain ..> util
+presentation ..> util
+application ..> util
 
 @enduml
 
-
+P2PFileShareApp ..> DirectoryTableView
+P2PFileShareApp ..> DownloadingDialog
+P2PFileShareApp ..> EditConfigurationDialog
+P2PFileShareApp ..> RemoteFilenamesTableView
 
 
 /'

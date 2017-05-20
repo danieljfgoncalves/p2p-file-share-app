@@ -1,5 +1,6 @@
-package domain;
+package networking;
 
+import domain.RemoteFilename;
 import settings.Application;
 import util.ByteUtil;
 import util.Constants;
@@ -12,11 +13,11 @@ import java.util.LinkedList;
 import java.util.List;
 
 /**
- * Represents a application protocol (version 1) to parse a datagram packet into a FilenameItemList.
+ * Represents a application protocol (version 1) to parse a datagram packet into a RemoteFilenameList.
  * <p>
  * Created by danielGoncalves on 10/05/17.
  */
-public final class FilenameSetProtocol {
+public final class RemoteFilenameListProtocol {
 
     private static final int PROTOCOL_ID = 1;
     private static final int PROTOCOL_VERSION = 1;
@@ -34,11 +35,11 @@ public final class FilenameSetProtocol {
     private static final int FILE_COUNT_SIZE = USERNAME_LENGTH_INDEX - FILE_COUNT_INDEX;
 
     /**
-     * The caller references the static methods using <tt>FilenameSetProtocol.EMPTY_STRING</tt>,
+     * The caller references the static methods using <tt>RemoteFilenameListProtocol.EMPTY_STRING</tt>,
      * and so on. Thus, the caller should be prevented from constructing objects of
      * this class, by declaring this private constructor.
      */
-    private FilenameSetProtocol() {
+    private RemoteFilenameListProtocol() {
         //this prevents even the native class from
         //calling this ctor as well :
         throw new AssertionError();
@@ -52,10 +53,10 @@ public final class FilenameSetProtocol {
      *
      * @return a list of filename items
      */
-    public static List<FilenameItem> parsePacket(byte[] bytes, InetAddress hostAddress)
+    public static List<RemoteFilename> parsePacket(byte[] bytes, InetAddress hostAddress)
             throws IllegalStateException {
 
-        List<FilenameItem> filenames = new ArrayList<>();
+        List<RemoteFilename> filenames = new ArrayList<>();
 
         if (bytes[ID_INDEX] != PROTOCOL_ID || bytes[VERSION_INDEX] != PROTOCOL_VERSION) {
             throw new IllegalStateException("Packet does not abide by this protocol.");
@@ -76,7 +77,7 @@ public final class FilenameSetProtocol {
 
             String filename = new String(bytes, nextIndex, filenameSize);
 
-            FilenameItem item = new FilenameItem(filename, username, hostAddress, tcpPort);
+            RemoteFilename item = new RemoteFilename(filename, username, hostAddress, tcpPort);
 
             // add to list
             filenames.add(item);

@@ -1,23 +1,32 @@
 package application;
 
+import presentation.EditConfigurationDialog;
 import util.Constants;
 
 import java.io.*;
 import java.util.Map;
 import java.util.Properties;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Controller to edit application settings file.
  * <p>
- * Created by danielGoncalves on 12/05/17.
+ * Created by 2DD - Group SNOW WHITE {1151452, 1151031, 1141570, 1151088}
  */
-public class EditSettingsController {
+public class EditConfigurationsController {
 
     private static final String HEADER = "############################\n" +
             "# P2PFileShareApp Settings #\n" +
             "############################";
 
-    public void edit(Map<String, String> settings) throws IOException {
+    /**
+     * Edits and persists the configuration file.
+     *
+     * @param configurations the new configurations
+     * @throws IOException I/O error
+     */
+    public void edit(Map<String, String> configurations) throws IOException {
 
         File configFile = new File(Constants.CONFIG_FILENAME);
         if (!configFile.exists()) configFile.createNewFile();
@@ -28,15 +37,14 @@ public class EditSettingsController {
             InputStream input = new FileInputStream(configFile);
             properties.load(input);
             input.close();
-            System.out.println("+++++++++++++++pas+++++++++++++++");
             config = new FileOutputStream(configFile);
             // set the properties value
-            properties.putAll(settings);
+            properties.putAll(configurations);
             // save properties to project root folder
             properties.store(config, HEADER);
 
         } catch (IOException io) {
-            io.printStackTrace();
+            Logger.getLogger(EditConfigurationDialog.class.getName()).log(Level.SEVERE, "Saving the configurations failed.", io);
         } finally {
             if (config != null) {
                 try {

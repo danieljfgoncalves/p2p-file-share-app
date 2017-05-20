@@ -15,7 +15,7 @@ import static java.nio.file.StandardWatchEventKinds.*;
 /**
  * Represents the directory that will update if any changes to directory.
  * <p>
- * Created by danielGoncalves on 09/05/17.
+ * Created by 2DD - Group SNOW WHITE {1151452, 1151031, 1141570, 1151088}
  */
 public class Directory extends Observable {
 
@@ -24,6 +24,12 @@ public class Directory extends Observable {
     private final FileFilter fileFilter;
     private final Thread watchThread;
 
+    /**
+     * Creates a directory object.
+     *
+     * @param dirPath the path to the directory
+     * @throws IOException I/O error
+     */
     public Directory(String dirPath) throws IOException {
 
         File dir = new File(dirPath);
@@ -38,20 +44,39 @@ public class Directory extends Observable {
         this.watchThread = new Thread(new WatchDirTask());
     }
 
+    /**
+     * Start directory watch service
+     */
     public void watch() {
 
         watchThread.start();
     }
 
+    /**
+     * Obtains the absolute path to the directory
+     *
+     * @return the absolute path to the directory
+     */
     public String getAbsoluteDirPath() {
         return directory.toFile().getAbsolutePath();
     }
 
+    /**
+     * Obtains the directory name
+     *
+     * @return the directory name
+     */
     public String getDirectoryName() {
 
         return directory.getFileName().toString();
     }
 
+    /**
+     * Obtains the files in the directory (using the defined file filter)
+     *
+     * @return the files in the directory
+     * @throws IOException I/O error
+     */
     public File[] getFiles() throws IOException {
 
         File folder = this.directory.toFile();
@@ -59,6 +84,12 @@ public class Directory extends Observable {
         return folder.listFiles(this.fileFilter);
     }
 
+    /**
+     * Obtains a specific file in the directory.
+     *
+     * @param filename the requested file name
+     * @return the requested file or null if not available
+     */
     public File getFile(String filename) {
 
         File folder = this.directory.toFile();
@@ -97,6 +128,9 @@ public class Directory extends Observable {
         }
     }
 
+    /**
+     * A independent thread responsible of watching this directory
+     */
     private class WatchDirTask implements Runnable {
 
         @Override

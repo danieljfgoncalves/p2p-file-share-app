@@ -28,7 +28,7 @@ import java.util.function.ToIntFunction;
  * <p>
  * (cc) @imifos
  */
-public class WorkIndicatorDialog<P> {
+public class DownloadingDialog<P> {
 
     private final ProgressIndicator progressIndicator = new ProgressIndicator(ProgressIndicator.INDETERMINATE_PROGRESS);
     private final Stage dialog = new Stage(StageStyle.UNDECORATED);
@@ -48,7 +48,7 @@ public class WorkIndicatorDialog<P> {
     /**
      *
      */
-    public WorkIndicatorDialog(Window owner, String label) {
+    public DownloadingDialog(Window owner, String label) {
         dialog.initModality(Modality.WINDOW_MODAL);
         dialog.initOwner(owner);
         dialog.setResizable(false);

@@ -25,7 +25,7 @@ import static util.Constants.WARNING_PANE_TITLE;
  * <p>
  * Created by danielGoncalves on 13/05/17.
  */
-public class DirectoryTableViewUI extends TableView<File> implements Observer {
+public class DirectoryTableView extends TableView<File> implements Observer {
 
 
     // FIXME: Fix if not needed
@@ -36,7 +36,7 @@ public class DirectoryTableViewUI extends TableView<File> implements Observer {
     private TableColumn<File, String> nameColumn;
     private TableColumn<File, String> sizeColumn;
 
-    public DirectoryTableViewUI(Directory directory) {
+    public DirectoryTableView(Directory directory) {
 
         dir = directory;
         dir.addObserver(this);
@@ -74,7 +74,7 @@ public class DirectoryTableViewUI extends TableView<File> implements Observer {
             @Override
             public ObservableValue<String> call(CellDataFeatures<File, String> f) {
 
-                // f.getValue() returns the FilenameItem instance for a particular TableView row
+                // f.getValue() returns the RemoteFilename instance for a particular TableView row
 
                 return new SimpleStringProperty(f.getValue().getName());
             }
@@ -86,7 +86,7 @@ public class DirectoryTableViewUI extends TableView<File> implements Observer {
             @Override
             public ObservableValue<String> call(CellDataFeatures<File, String> f) {
 
-                // f.getValue() returns the FilenameItem instance for a particular TableView row
+                // f.getValue() returns the RemoteFilename instance for a particular TableView row
 
                 return new SimpleStringProperty(ByteUtil.readableByteCount(f.getValue().length(), true));
             }

@@ -1,8 +1,8 @@
 package application;
 
 import domain.Directory;
-import domain.FilenameItem;
-import domain.FilenameItemList;
+import domain.RemoteFilename;
+import domain.RemoteFilenameList;
 import networking.TcpCommunication;
 import networking.UdpCommunication;
 import settings.AppSettings;
@@ -17,39 +17,67 @@ import java.util.Properties;
 /**
  * Controller to handle TCP/UDP communications.
  * <p>
- * Created by danielGoncalves on 12/05/17.
+ * Created by 2DD - Group SNOW WHITE {1151452, 1151031, 1141570, 1151088}
  */
 public class CommunicationsController {
 
     private UdpCommunication udp = null;
     private TcpCommunication tcp = null;
 
+    /**
+     * Creates a communications controller
+     *
+     * @param udpSocket   the UDP datagram socket
+     * @param sharedDir   the shared directory
+     * @param filenames   the remote filenames
+     * @param tcpPort     the TCP port
+     * @param tcpSocket   the TCP server socket
+     * @param downloadDir the downloads directory
+     * @throws SocketException error creating/accessing socket
+     */
     public CommunicationsController(DatagramSocket udpSocket, Directory sharedDir,
-                                    FilenameItemList filenameSet, Integer tcpPort,
+                                    RemoteFilenameList filenames, Integer tcpPort,
                                     ServerSocket tcpSocket, Directory downloadDir) throws SocketException {
 
-        udp = new UdpCommunication(udpSocket, sharedDir, filenameSet, tcpPort);
+        udp = new UdpCommunication(udpSocket, sharedDir, filenames, tcpPort);
         tcp = new TcpCommunication(tcpSocket, sharedDir, downloadDir);
     }
 
-    public void loadKnownIps() throws UnknownHostException {
-        udp.loadKnownIps();
-    }
-
+    /**
+     * Opens UDP communications
+     */
     public void openUdpCommunications() {
 
         if (udp != null) udp.start();
     }
 
+    /**
+     * Opens TCP communications
+     */
     public void openTcpCommunications() {
         if (tcp != null) tcp.start();
     }
 
-    public void downloadFile(FilenameItem item, File newFile) throws IOException, IllegalArgumentException {
+    /**
+     * Downloads a remote file.
+     *
+     * @param remoteFilename the remote filename
+     * @param newFile        the file object to store the download (if null creates in default folder)
+     * @throws IOException              I/O error
+     * @throws IllegalArgumentException file not available error
+     */
+    public void downloadFile(RemoteFilename remoteFilename, File newFile) throws IOException, IllegalArgumentException {
 
-        if (tcp != null) tcp.download(item.getFilename(), item.getHost(), item.getTcpPort(), newFile);
+        if (tcp != null)
+            tcp.download(remoteFilename.getFilename(), remoteFilename.getHost(), remoteFilename.getTcpPort(), newFile);
     }
 
+    /**
+     * Adds a list of IPv4 addresses to the known addresses
+     *
+     * @param addresses list of known addresses
+     * @throws UnknownHostException unknown IPv4 address error
+     */
     public void addPeerAddresses(String[] addresses) throws UnknownHostException {
 
         for (String address :
@@ -59,6 +87,20 @@ public class CommunicationsController {
         }
     }
 
+    /**
+     * Loads a list of known IPv4 addresses
+     *
+     * @throws UnknownHostException unknown IPv4 address error
+     */
+    public void loadKnownIps() throws UnknownHostException {
+        udp.loadKnownIps();
+    }
+
+    /**
+     * Persists a list of known IPv4 addresses
+     *
+     * @throws IOException I/O error
+     */
     public void saveKnownIpsList() throws IOException {
 
         File config = new File(Constants.CONFIG_FILENAME);
@@ -75,6 +117,11 @@ public class CommunicationsController {
         output.close();
     }
 
+    /**
+     * Obtains a list of known IPv4 addresses
+     *
+     * @return list of known IPv4 addresses
+     */
     public List<String> getKnownIps() {
         return udp.getKnownIps();
     }

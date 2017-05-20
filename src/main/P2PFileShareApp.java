@@ -1,9 +1,9 @@
-import application.AddRemoveSharedFileController;
 import application.CommunicationsController;
-import application.EditSettingsController;
+import application.EditConfigurationsController;
+import application.ManageSharedFilesController;
 import domain.Directory;
-import domain.FilenameItem;
-import domain.FilenameItemList;
+import domain.RemoteFilename;
+import domain.RemoteFilenameList;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanBinding;
@@ -30,10 +30,10 @@ import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
-import presentation.DirectoryTableViewUI;
+import presentation.DirectoryTableView;
+import presentation.DownloadingDialog;
 import presentation.EditConfigurationDialog;
-import presentation.FilenameItemTableViewUI;
-import presentation.WorkIndicatorDialog;
+import presentation.RemoteFilenamesTableView;
 import settings.Application;
 import util.Constants;
 import util.OsUtils;
@@ -67,10 +67,10 @@ public class P2PFileShareApp extends javafx.application.Application {
     // Components
     private static Stage mainStage;
     private Desktop desktop;
-    private FilenameItemTableViewUI remoteTableView;
-    private DirectoryTableViewUI sharedTableView;
-    private DirectoryTableViewUI downloadTableView;
-    private WorkIndicatorDialog wd = null;
+    private RemoteFilenamesTableView remoteTableView;
+    private DirectoryTableView sharedTableView;
+    private DirectoryTableView downloadTableView;
+    private DownloadingDialog wd = null;
     private Region veil = new Region();
     private FileChooser openFileChooser;
     private FileChooser downloadFileChooser;
@@ -79,11 +79,11 @@ public class P2PFileShareApp extends javafx.application.Application {
 
     // Controllers
     private CommunicationsController communicationsController;
-    private AddRemoveSharedFileController addRemoveController;
-    private EditSettingsController editConfigurationController;
+    private ManageSharedFilesController addRemoveController;
+    private EditConfigurationsController editConfigurationController;
 
     // Objects
-    private FilenameItemList filenames;
+    private RemoteFilenameList filenames;
     private Directory shdDir;
     private Directory dwlDir;
     private Integer tcpPort = 0;
@@ -130,7 +130,7 @@ public class P2PFileShareApp extends javafx.application.Application {
         }
 
         // Create List of file to share & shared/download directories
-        filenames = new FilenameItemList();
+        filenames = new RemoteFilenameList();
         shdDir = null;
         dwlDir = null;
         try { // FIXME : Refactor to a controller ??
@@ -179,9 +179,9 @@ public class P2PFileShareApp extends javafx.application.Application {
         communicationsController.openTcpCommunications();
 
         // Add/Remove Controller
-        addRemoveController = new AddRemoveSharedFileController();
+        addRemoveController = new ManageSharedFilesController();
         // Edit Config Controller
-        editConfigurationController = new EditSettingsController();
+        editConfigurationController = new EditConfigurationsController();
     }
 
     @Override
@@ -190,15 +190,15 @@ public class P2PFileShareApp extends javafx.application.Application {
         mainStage = primaryStage;
 
         setup();
-        sharedTableView = new DirectoryTableViewUI(shdDir);
+        sharedTableView = new DirectoryTableView(shdDir);
         sharedTableView.getSelectionModel().setSelectionMode(
                 SelectionMode.MULTIPLE
         );
-        downloadTableView = new DirectoryTableViewUI(dwlDir);
+        downloadTableView = new DirectoryTableView(dwlDir);
         downloadTableView.getSelectionModel().setSelectionMode(
                 SelectionMode.MULTIPLE
         );
-        remoteTableView = new FilenameItemTableViewUI(filenames.getList());
+        remoteTableView = new RemoteFilenamesTableView(filenames.getList());
 
         // Setup file choosers
         configureFileChoosers();
@@ -666,12 +666,12 @@ public class P2PFileShareApp extends javafx.application.Application {
         return ipTextField;
     }
 
-    private Integer downloadDialog(FilenameItem filename, File newFile) {
+    private Integer downloadDialog(RemoteFilename filename, File newFile) {
 
         // TODO: If file doesn't exist
         String tmp = filename.getFilename();
         if (tmp.length() > 20) tmp = tmp.substring(0, 20);
-        wd = new WorkIndicatorDialog(mainStage.getOwner(), "Downloading " + tmp + "...");
+        wd = new DownloadingDialog(mainStage.getOwner(), "Downloading " + tmp + "...");
 
         wd.addTaskEndNotification(result -> {
             System.out.println("DOWNLOAD STATUS: " + result);
@@ -797,7 +797,7 @@ public class P2PFileShareApp extends javafx.application.Application {
         System.out.println("Download");
         // Download
         veil.setVisible(true);
-        FilenameItem item = remoteTableView.getSelectionModel().getSelectedItem();
+        RemoteFilename item = remoteTableView.getSelectionModel().getSelectedItem();
         Integer value = downloadDialog(item, null);
         veil.setVisible(false);
     }
@@ -807,7 +807,7 @@ public class P2PFileShareApp extends javafx.application.Application {
         veil.setVisible(true);
         File file = downloadFileChooser.showSaveDialog(mainStage);
         if (file != null) {
-            FilenameItem item = remoteTableView.getSelectionModel().getSelectedItem();
+            RemoteFilename item = remoteTableView.getSelectionModel().getSelectedItem();
             downloadDialog(item, file);
         }
         veil.setVisible(false);

@@ -1,8 +1,8 @@
 package tests.domain;
 
-import domain.FilenameItem;
-import domain.FilenameItemList;
-import domain.FilenameSetProtocol;
+import domain.RemoteFilename;
+import domain.RemoteFilenameList;
+import networking.RemoteFilenameListProtocol;
 import settings.Application;
 
 import java.io.File;
@@ -17,7 +17,7 @@ import static org.junit.Assert.assertThat;
  * <p>
  * Created by danielGoncalves on 10/05/17.
  */
-public class FilenameSetProtocolTest {
+public class RemoteFilenameListProtocolTest {
 
     private File[] files;
     private String username;
@@ -43,20 +43,20 @@ public class FilenameSetProtocolTest {
     public void ensureSetIsEqualAfterParsing() throws Exception {
 
         System.out.println("ensureSetIsEqualAfterParsing");
-        FilenameItemList fnSet1 = new FilenameItemList();
-        fnSet1.add(new FilenameItem("file1", username, addr, tcpPort));
-        fnSet1.add(new FilenameItem("file2", username, addr, tcpPort));
-        fnSet1.add(new FilenameItem("file3", username, addr, tcpPort));
-        fnSet1.add(new FilenameItem("file4", username, addr, tcpPort));
-        fnSet1.add(new FilenameItem("file5", username, addr, tcpPort));
+        RemoteFilenameList fnSet1 = new RemoteFilenameList();
+        fnSet1.add(new RemoteFilename("file1", username, addr, tcpPort));
+        fnSet1.add(new RemoteFilename("file2", username, addr, tcpPort));
+        fnSet1.add(new RemoteFilename("file3", username, addr, tcpPort));
+        fnSet1.add(new RemoteFilename("file4", username, addr, tcpPort));
+        fnSet1.add(new RemoteFilename("file5", username, addr, tcpPort));
 
-        List<byte[]> bytes = FilenameSetProtocol.parseFileList(files, tcpPort);
+        List<byte[]> bytes = RemoteFilenameListProtocol.parseFileList(files, tcpPort);
 
-        FilenameItemList fnSet2 = new FilenameItemList();
+        RemoteFilenameList fnSet2 = new RemoteFilenameList();
 
         for (byte[] packet :
                 bytes) {
-            fnSet2.addAll(FilenameSetProtocol.parsePacket(packet, addr));
+            fnSet2.addAll(RemoteFilenameListProtocol.parsePacket(packet, addr));
         }
 
         assertThat(fnSet1, is(fnSet2));

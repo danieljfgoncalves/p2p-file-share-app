@@ -10,17 +10,26 @@ import java.util.Observer;
 /**
  * Represents a container of filename items.
  * <p>
- * Created by danielGoncalves on 09/05/17.
+ * Created by 2DD - Group SNOW WHITE {1151452, 1151031, 1141570, 1151088}
  */
-public class FilenameItemList implements Observer {
+public class RemoteFilenameList implements Observer {
 
-    private ObservableList<FilenameItem> list;
+    private ObservableList<RemoteFilename> list;
 
-    public FilenameItemList() {
+    /**
+     * Creates a remote file list manager
+     */
+    public RemoteFilenameList() {
         this.list = FXCollections.observableArrayList();
     }
 
-    public boolean add(FilenameItem item) {
+    /**
+     * Adds a remote file to the list and activates/refreshes the timeout scheduler for the added file
+     *
+     * @param item the remote file to add
+     * @return true if file is added, false if resfreshed or if file was inactive
+     */
+    public boolean add(RemoteFilename item) {
 
         if (!item.isActive()) {
             return false;
@@ -29,7 +38,7 @@ public class FilenameItemList implements Observer {
         int index = list.indexOf(item);
         if (index >= 0) {
 
-            FilenameItem found = list.get(index);
+            RemoteFilename found = list.get(index);
             found.refresh();
             return false;
         }
@@ -40,10 +49,16 @@ public class FilenameItemList implements Observer {
         return this.list.add(item);
     }
 
-    public boolean addAll(Collection<FilenameItem> collection) {
+    /**
+     * Adds a collection of remote files.
+     *
+     * @param collection the collection of remote files
+     * @return true if all were added
+     */
+    public boolean addAll(Collection<RemoteFilename> collection) {
 
         boolean ret = true;
-        for (FilenameItem filename :
+        for (RemoteFilename filename :
                 collection) {
             if (!add(filename)) ret = !ret;
         }
@@ -51,12 +66,23 @@ public class FilenameItemList implements Observer {
         return ret;
     }
 
-    public boolean remove(FilenameItem item) {
+    /**
+     * Removes a remote file from the list.
+     *
+     * @param item the rmeote file to remove
+     * @return true if removed, false otherwise
+     */
+    public boolean remove(RemoteFilename item) {
 
         return this.list.remove(item);
     }
 
-    public ObservableList<FilenameItem> getList() {
+    /**
+     * Obtains the list
+     *
+     * @return the remote file list
+     */
+    public ObservableList<RemoteFilename> getList() {
         return this.list;
     }
 
@@ -65,9 +91,9 @@ public class FilenameItemList implements Observer {
 
         // MUTEX : because of race condition when updating more than one observable
         synchronized (this) {
-            if (o instanceof FilenameItem) {
+            if (o instanceof RemoteFilename) {
 
-                FilenameItem item = (FilenameItem) o;
+                RemoteFilename item = (RemoteFilename) o;
                 if (!item.isActive()) {
                     remove(item);
                 }
@@ -80,7 +106,7 @@ public class FilenameItemList implements Observer {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        FilenameItemList that = (FilenameItemList) o;
+        RemoteFilenameList that = (RemoteFilenameList) o;
 
         return list.equals(that.list);
     }
