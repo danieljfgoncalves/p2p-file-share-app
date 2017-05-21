@@ -1,0 +1,43 @@
+@startuml
+
+'http://plantuml.com/skinparam.html'
+skinparam handwritten true
+skinparam monochrome false
+skinparam defaultFontName FG Virgil
+skinparam shadowing false
+
+package "presentation" {
+
+    class DirectoryTableView
+    class DownloadingDialog
+    class EditConfigurationDialog
+    class RemoteFilenamesTableView
+    class P2PFileShareApp
+}
+
+package "application" {
+    class ManageSharedFilesController
+    class CommunicationsController
+    class EditConfigurationsController
+}
+
+package "networking" {
+
+    class UdpCommunication
+    class TcpCommunication
+    class RemoteFilenameListProtocol
+}
+
+package "domain" {
+
+    class RemoteFilename
+    class RemoteFilenameList
+    class Directory
+}
+
+application .> domain
+application .> networking
+networking .> domain
+presentation .> application
+
+@enduml

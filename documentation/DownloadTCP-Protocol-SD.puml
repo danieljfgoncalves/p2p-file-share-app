@@ -1,4 +1,11 @@
 @startuml
+
+'http://plantuml.com/skinparam.html'
+skinparam handwritten true
+skinparam monochrome false
+skinparam defaultFontName FG Virgil
+skinparam shadowing false
+
 Cliente -> Server: download Request
 Server --> Cliente: accept Request
 Server -> Server: next request
